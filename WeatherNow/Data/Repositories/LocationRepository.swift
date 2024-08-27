@@ -9,16 +9,19 @@ import Foundation
 
 class LocationRepository: LocationRepositoryInterface {
     
-    private let locationsKey = "locations"
+    private let locationsKey = "weather_locations"
     private var locations: [LocationEntity] = []
     
-    init() {
+    var userDefaults: UserDefaults
+    
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
         loadLocations()
     }
     
     // Carga las ubicaciones almacenadas desde UserDefaults
     private func loadLocations() {
-        if let data = UserDefaults.standard.data(forKey: locationsKey),
+        if let data = userDefaults.data(forKey: locationsKey),
            let decodedLocations = try? JSONDecoder().decode([LocationEntity].self, from: data) {
             locations = decodedLocations
         }
@@ -27,13 +30,14 @@ class LocationRepository: LocationRepositoryInterface {
     // Guarda las ubicaciones en UserDefaults
     private func saveLocations() {
         if let encodedData = try? JSONEncoder().encode(locations) {
-            UserDefaults.standard.set(encodedData, forKey: locationsKey)
+            userDefaults.set(encodedData, forKey: locationsKey)
         }
     }
     
     // Método para agregar una nueva ubicación
     func addLocation(_ location: LocationEntity) {
         locations.append(location)
+        clearInvalidLocations()
         saveLocations()
     }
     
@@ -56,9 +60,14 @@ class LocationRepository: LocationRepositoryInterface {
     }
     
     // Delete invalid data
-    func clearInvalidLocations() {
-        var locations = getLocations()
+    internal func clearInvalidLocations() {
         locations = locations.filter { !$0.cityName.isEmpty }
+        saveLocations()
+    }
+    
+    // Clears all stored locations - useful for testing.
+    func clearAllLocations() {
+        locations.removeAll()
         saveLocations()
     }
 }

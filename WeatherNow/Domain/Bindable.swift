@@ -16,6 +16,8 @@ class Bindable<T> {
         }
     }
     
+    var didNotify = false
+    
     init(_ value: T) {
         self.value = value
     }
@@ -23,7 +25,7 @@ class Bindable<T> {
     /// Binds a listener to the Bindable instance.
     /// - Parameter listener: The closure to be called when the value changes.
     func bind(listener: @escaping (T) -> Void) {
-        // Evitar agregar listeners duplicados
+        // Avoid adding duplicate listeners
         if !listeners.contains(where: { $0 as AnyObject === listener as AnyObject }) {
             listeners.append(listener)
             listener(value)
@@ -38,6 +40,7 @@ class Bindable<T> {
     
     /// Notifies all listeners of a value change.
     func notifyListeners() {
+        didNotify = true
         listeners.forEach { $0(value) }
     }
     
@@ -46,6 +49,11 @@ class Bindable<T> {
         DispatchQueue.main.async {
             self.notifyListeners()
         }
+    }
+    
+    /// Resets the didNotify flag for testing purposes.
+    func resetDidNotify() {
+        didNotify = false
     }
 }
 

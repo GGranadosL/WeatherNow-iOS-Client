@@ -44,10 +44,12 @@ class LocationRegistrationViewModel: NSObject {
                     self?.notificationService.checkForSignificantWeatherChange(previousWeather: location, currentWeather: updatedLocation)
                     
                 case .failure(let error):
+                    self?.onLocationFail?()
                     print("Failed to fetch weather data: \(error)")
                 }
             }
         } else {
+            self.onLocationFail?()
             print("Attempted to register a location with invalid coordinates")
         }
     }

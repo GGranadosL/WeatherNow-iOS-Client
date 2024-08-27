@@ -8,7 +8,7 @@
 import Foundation
 
 // API client for fetching weather data from a remote service.
-class APIClient: WeatherRepositoryInterface {
+class APIClient: APIClientInterface, WeatherRepositoryInterface {
     
     private let apiKey = KeychainHelper.shared.getAPIKey() // Retrieves the API key from the Keychain.
     

@@ -6,3 +6,15 @@
 //
 
 import Foundation
+@testable import WeatherNow
+
+class MockWeatherNotificationService: WeatherNotificationService {
+    
+    var checkForSignificantWeatherChangeCalled = false
+    
+    override func checkForSignificantWeatherChange(previousWeather: LocationEntity, currentWeather: LocationEntity) {
+        checkForSignificantWeatherChangeCalled = true
+
+    }
+}
+

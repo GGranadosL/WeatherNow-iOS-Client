@@ -72,6 +72,9 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
     func addLocation(_ location: LocationEntity, isCurrentLocation: Bool = false) {
         if isCurrentLocation {
             fetchWeather(for: location, isCurrentLocation: true) { _ in }
+        } else {
+            userAddedLocations.insert(location, at: 0) 
+            locations.notifyListeners()
         }
     }
     
@@ -98,7 +101,7 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
         }
     }
 
-    private func handleCurrentLocationWeatherUpdate(_ updatedLocation: LocationEntity) {
+    func handleCurrentLocationWeatherUpdate(_ updatedLocation: LocationEntity) {
         let previousWeatherData = notificationService.loadPreviousWeatherData()
         if let previousLocation = currentLocationWeather {
             notificationService.checkForSignificantWeatherChange(
@@ -107,9 +110,10 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
             )
         }
         currentLocationWeather = updatedLocation
+
     }
 
-    private func handleUserAddedLocationWeatherUpdate(_ updatedLocation: LocationEntity) {
+    func handleUserAddedLocationWeatherUpdate(_ updatedLocation: LocationEntity) {
         let previousWeatherData = notificationService.loadPreviousWeatherData()
         if let index = userAddedLocations.firstIndex(where: { $0.id == updatedLocation.id }) {
             let previousLocation = userAddedLocations[index]

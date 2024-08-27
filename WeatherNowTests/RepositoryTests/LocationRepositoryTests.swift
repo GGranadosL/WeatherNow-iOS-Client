@@ -6,30 +6,89 @@
 //
 
 import XCTest
+@testable import WeatherNow
 
 final class LocationRepositoryTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    var locationRepository: LocationRepository!
+    var userDefaults: UserDefaults!
+    
+    override func setUp() {
+        super.setUp()
+        // Create a new UserDefaults suite for testing
+        userDefaults = UserDefaults(suiteName: "TestSuite")
+        
+        // Ensure it's clean before every test
+        userDefaults.removePersistentDomain(forName: "TestSuite")
+        
+        // Inject the test UserDefaults into the repository
+        locationRepository = LocationRepository(userDefaults: userDefaults)
+        
+        locationRepository = LocationRepository()
+        locationRepository.clearAllLocations()
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    override func tearDown() {
+        locationRepository = nil
+        super.tearDown()
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    func testAddLocation() {
+        // Arrange
+        let location = LocationEntity(id: UUID(), cityName: "Test City", latitude: 12.34, longitude: 56.78)
+        
+        // Act
+        locationRepository.addLocation(location)
+        let storedLocations = locationRepository.getLocations()
+        
+        // Assert
+        XCTAssertEqual(storedLocations.count, 1)
+        XCTAssertEqual(storedLocations.first?.cityName, "Test City")
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    func testGetLocations() {
+        // Arrange
+        let location1 = LocationEntity(id: UUID(), cityName: "City One", latitude: 12.34, longitude: 56.78)
+        let location2 = LocationEntity(id: UUID(), cityName: "City Two", latitude: 23.45, longitude: 67.89)
+        locationRepository.addLocation(location1)
+        locationRepository.addLocation(location2)
+        
+        // Act
+        let storedLocations = locationRepository.getLocations()
+        
+        // Assert
+        XCTAssertEqual(storedLocations.count, 2)
+        XCTAssertEqual(storedLocations[0].cityName, "City One")
+        XCTAssertEqual(storedLocations[1].cityName, "City Two")
     }
 
+    func testDeleteLocation() {
+        // Arrange
+        let location = LocationEntity(id: UUID(), cityName: "Delete City", latitude: 12.34, longitude: 56.78)
+        locationRepository.addLocation(location)
+        
+        // Act
+        let indexToDelete = 0
+        locationRepository.deleteLocation(at: indexToDelete)
+        let storedLocations = locationRepository.getLocations()
+        
+        // Assert
+        XCTAssertEqual(storedLocations.count, 0)
+    }
+
+    func testClearInvalidLocations() {
+        // Arrange
+        let invalidLocation = LocationEntity(id: UUID(), cityName: "", latitude: 12.34, longitude: 56.78)
+        let validLocation = LocationEntity(id: UUID(), cityName: "Valid City", latitude: 23.45, longitude: 67.89)
+        locationRepository.addLocation(invalidLocation)
+        locationRepository.addLocation(validLocation)
+        
+        // Act
+        locationRepository.clearInvalidLocations()
+        let storedLocations = locationRepository.getLocations()
+        
+        // Assert
+        XCTAssertEqual(storedLocations.count, 1)
+        XCTAssertEqual(storedLocations.first?.cityName, "Valid City")
+    }
 }

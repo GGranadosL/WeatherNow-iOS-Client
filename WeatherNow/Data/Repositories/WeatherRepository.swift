@@ -21,11 +21,11 @@ class WeatherRepository: WeatherRepositoryInterface {
     }
     
 
-    private let apiClient: APIClient
+    private let apiClient: APIClientInterface
     
     /// Initializes the repository with an API client.
     /// - Parameter apiClient: The API client used for making network requests.
-    init(apiClient: APIClient) {
+    init(apiClient: APIClientInterface) {
         self.apiClient = apiClient
     }
     

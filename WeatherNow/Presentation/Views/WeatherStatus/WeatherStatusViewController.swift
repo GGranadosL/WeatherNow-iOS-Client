@@ -37,6 +37,7 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     }()
     private let locationManager = CLLocationManager()
     weak var coordinator: Coordinator?
+    private var debounceTimer: Timer?
 
     // MARK: - Initialization
     
@@ -110,8 +111,8 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     
     func reloadWeatherData() {
         viewModel.loadWeatherData()
-        tableView.reloadData()
-        refreshControl.endRefreshing() // End refreshing animation
+        tableView.reloadData() // This reloads the entire table view, which is safer.
+        refreshControl.endRefreshing()
     }
     
     func didRegisterLocation() {
@@ -134,12 +135,16 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     private func bindViewModel() {
         viewModel.locations.bind { [weak self] _ in
             DispatchQueue.main.async {
-                self?.activityIndicator.stopAnimating()
-                self?.tableView.reloadData()
-                self?.refreshControl.endRefreshing()
+                self?.debounceTimer?.invalidate()
+                self?.debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+                    self?.activityIndicator.stopAnimating()
+                    self?.tableView.reloadData()
+                    self?.refreshControl.endRefreshing()
+                }
             }
         }
     }
+
     
     private func requestLocationPermission() {
         locationManager.delegate = self
@@ -257,12 +262,16 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     // Handles swipe to delete functionality
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete && indexPath.section != 0 {
-            // Invertir el orden de los datos para eliminar el correcto
             let reversedIndex = viewModel.userAddedLocations.count - 1 - indexPath.row
             viewModel.deleteLocation(at: reversedIndex)
-            tableView.deleteRows(at: [indexPath], with: .fade)
+            
+            // You must notify the table view that a row has been deleted
+            tableView.performBatchUpdates({
+                tableView.deleteRows(at: [indexPath], with: .fade)
+            }, completion: nil)
         }
     }
+
 
     // Handles cell selection in the table view
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
