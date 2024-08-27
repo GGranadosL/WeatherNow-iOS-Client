@@ -16,7 +16,8 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
     let locations: Bindable<[LocationEntity]> = Bindable([])
     
     private let locationManager = CLLocationManager()
-    private let weatherRepository: WeatherRepositoryInterface
+    let weatherRepository: WeatherRepositoryInterface
+    let locationRepository: LocationRepositoryInterface
     
     // Stores the current location's weather information if available
     var currentLocationWeather: LocationEntity? {
@@ -39,20 +40,45 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
 
     // MARK: - Initialization
     
-    init(weatherRepository: WeatherRepositoryInterface) {
+    init(weatherRepository: WeatherRepositoryInterface, locationRepository: LocationRepositoryInterface) {
         self.weatherRepository = weatherRepository
+        self.locationRepository = locationRepository
         super.init()
         locationManager.delegate = self
-        requestLocation()
     }
     
     // MARK: - Public Methods
+    
+    func loadWeatherData() {
+        // Load user-added locations from the repository
+        userAddedLocations = locationRepository.getLocations()
+
+        // Fetch weather data for each user-added location
+        for location in userAddedLocations {
+            fetchWeather(for: location, isCurrentLocation: false)
+        }
+        
+        // Request location permissions if not already granted
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.requestLocation()
+
+        // Notify listeners about data update
+        locations.notifyListeners()
+    }
     
     // Adds a location to the appropriate list, fetching weather data
     func addLocation(_ location: LocationEntity, isCurrentLocation: Bool = false) {
         if isCurrentLocation {
             fetchWeather(for: location, isCurrentLocation: true)
         }
+    }
+    
+    // Deletes a location from the user-added locations list and updates the repository
+    func deleteLocation(at index: Int) {
+        guard index >= 0 && index < userAddedLocations.count else { return }
+        locationRepository.deleteLocation(at: index)  // Utiliza el índice para eliminar la ubicación
+        userAddedLocations.remove(at: index)  // Actualiza la lista de ubicaciones
+        locations.notifyListeners()  // Notifica a los observadores sobre el cambio
     }
     
     // Fetches weather data for a given location
@@ -95,4 +121,3 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
         print("Failed to get user location: \(error)")
     }
 }
-

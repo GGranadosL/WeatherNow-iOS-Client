@@ -19,7 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         let navigationController = UINavigationController()
         
-        let locationRepository = UserDefaultsLocationRepository() // Asegúrate de inicializar tu LocationRepository
+        let locationRepository = LocationRepository() // Asegúrate de inicializar tu LocationRepository
         let weatherRepository = APIClient() // Asegúrate de inicializar tu WeatherRepository
         
         let mainCoordinator = MainCoordinator(navigationController: navigationController,

@@ -8,20 +8,21 @@
 import UIKit
 import CoreLocation
 
-class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, CLLocationManagerDelegate {
+class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, CLLocationManagerDelegate, LocationRegistrationViewControllerDelegate {
     
     // MARK: - Properties
     
-    private let viewModel: WeatherStatusViewModel
-    private let tableView: UITableView = {
+    let viewModel: WeatherStatusViewModel
+    let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
+    private let refreshControl = UIRefreshControl()
     private let registerButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Add Location", for: .normal)
-        button.backgroundColor = .systemBlue
+        button.backgroundColor = UIColor(red: 238/255, green: 80/255, blue: 50/255, alpha: 1.0)
         button.tintColor = .white
         button.layer.cornerRadius = 25
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -55,10 +56,13 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         bindViewModel()
         activityIndicator.startAnimating()
         requestLocationPermission()
+        setupNavigationBarLogo()
+        viewModel.loadWeatherData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        reloadWeatherData()
         view.backgroundColor = .white
         let textAttributes = [NSAttributedString.Key.foregroundColor: UIColor.black]
         navigationController?.navigationBar.titleTextAttributes = textAttributes
@@ -75,6 +79,10 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(WeatherStatusTableViewCell.self, forCellReuseIdentifier: "WeatherStatusCell")
+        
+        // Add refresh control for pull-to-refresh
+        tableView.refreshControl = refreshControl
+        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
         
         view.addSubview(tableView)
         view.addSubview(registerButton)
@@ -97,6 +105,28 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         
         registerButton.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
     }
+    
+    func reloadWeatherData() {
+        viewModel.loadWeatherData()
+        tableView.reloadData()
+        refreshControl.endRefreshing() // End refreshing animation
+    }
+    
+    func didRegisterLocation() {
+        reloadWeatherData()
+    }
+    
+    private func setupNavigationBarLogo() {
+        let logo = UIImage(named: "weatherNowInc")
+        let imageView = UIImageView(image: logo)
+        imageView.contentMode = .scaleAspectFit
+        navigationItem.titleView = imageView
+    }
+
+    // Refresh data when pulling down the table view
+    @objc private func refreshData() {
+        reloadWeatherData()
+    }
 
     // Binds the ViewModel to update the view when the data changes
     private func bindViewModel() {
@@ -104,6 +134,7 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             DispatchQueue.main.async {
                 self?.activityIndicator.stopAnimating()
                 self?.tableView.reloadData()
+                self?.refreshControl.endRefreshing()
             }
         }
     }
@@ -124,8 +155,22 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     }
 
     @objc private func registerButtonTapped() {
-        coordinator?.showLocationRegistration()
+        // Desempaquetar navigationController
+        guard let navigationController = navigationController else {
+            // Manejar el caso en que no haya un navigationController
+            return
+        }
+        
+        let locationRegistrationCoordinator = LocationRegistrationCoordinator(
+            navigationController: navigationController, // Aquí ya está desempaquetado
+            locationRepository: viewModel.locationRepository,
+            weatherRepository: viewModel.weatherRepository,
+            weatherStatusViewController: self // Pasa la referencia de la vista actual
+        )
+        
+        locationRegistrationCoordinator.start()
     }
+
     
     // MARK: - CLLocationManagerDelegate
     
@@ -157,7 +202,6 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             latitude: currentLocation.coordinate.latitude,
             longitude: currentLocation.coordinate.longitude
         )
-        viewModel.addLocation(locationEntity, isCurrentLocation: true)
         locationManager.stopUpdatingLocation()
     }
     
@@ -200,12 +244,23 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         if indexPath.section == 0 {
             location = viewModel.currentLocationWeather!
         } else {
-            location = viewModel.userAddedLocations[indexPath.row]
+            // Invertir el orden de las celdas
+            location = viewModel.userAddedLocations.reversed()[indexPath.row]
         }
 
         cell.selectionStyle = .none
         cell.configure(with: location.toDomainLocation())
         return cell
+    }
+
+    // Handles swipe to delete functionality
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete && indexPath.section != 0 {
+            // Invertir el orden de los datos para eliminar el correcto
+            let reversedIndex = viewModel.userAddedLocations.count - 1 - indexPath.row
+            viewModel.deleteLocation(at: reversedIndex)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+        }
     }
 
     // Handles cell selection in the table view
@@ -214,11 +269,10 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         if indexPath.section == 0 {
             location = viewModel.currentLocationWeather!.toDomainLocation()
         } else {
-            location = viewModel.userAddedLocations[indexPath.row].toDomainLocation()
+            location = viewModel.userAddedLocations.reversed()[indexPath.row].toDomainLocation()
         }
 
         let detailViewController = WeatherDetailViewController(location: location)
         navigationController?.pushViewController(detailViewController, animated: true)
     }
 }
-

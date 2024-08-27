@@ -47,6 +47,7 @@ class WeatherStatusTableViewCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupView()
+        setupCardStyle()
     }
     
     required init?(coder: NSCoder) {
@@ -87,6 +88,17 @@ class WeatherStatusTableViewCell: UITableViewCell {
         ])
     }
     
+    private func setupCardStyle() {
+        contentView.layer.cornerRadius = 8
+        contentView.layer.masksToBounds = true
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.2
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        layer.shadowRadius = 4
+        layer.masksToBounds = false
+        layer.cornerRadius = 8
+    }
+    
     // MARK: - Configuration
     
     func configure(with location: Location) {
@@ -118,4 +130,5 @@ class WeatherStatusTableViewCell: UITableViewCell {
         }.resume()
     }
 }
+
 

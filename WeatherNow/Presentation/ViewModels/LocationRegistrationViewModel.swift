@@ -6,52 +6,64 @@
 //
 
 import Foundation
-import CoreLocation
 
 /// ViewModel for managing the location registration process.
-class LocationRegistrationViewModel: NSObject, CLLocationManagerDelegate {
+class LocationRegistrationViewModel: NSObject {
     
     // MARK: - Properties
     
     private let locationRepository: LocationRepositoryInterface
-    private var locationManager: CLLocationManager?
+    private let weatherRepository: WeatherRepositoryInterface
     
     // Callback to notify when location registration is successful
     var onLocationRegistered: (() -> Void)?
+    var onLocationFail: (() -> Void)?
     
     // MARK: - Initialization
     
-    init(locationRepository: LocationRepositoryInterface) {
+    init(locationRepository: LocationRepositoryInterface, weatherRepository: WeatherRepositoryInterface) {
         self.locationRepository = locationRepository
-        super.init() // Initialize the superclass (NSObject)
-        setupLocationManager()
+        self.weatherRepository = weatherRepository
+        locationRepository.clearInvalidLocations() // Clear any invalid locations from the repository
+        super.init()
     }
     
-    // MARK: - Private Methods
+    // MARK: - Public Methods
     
-    private func setupLocationManager() {
-        locationManager = CLLocationManager()
-        locationManager?.delegate = self
-        locationManager?.requestWhenInUseAuthorization()
-        locationManager?.startUpdatingLocation()
-    }
-    
+    /// Registers a location using latitude and longitude
     func registerLocation(location: LocationEntity) {
-        locationRepository.addLocation(location)
-        onLocationRegistered?()
+        // Ensure the location has valid coordinates before proceeding
+        if location.latitude != 0.0 && location.longitude != 0.0 {
+            weatherRepository.fetchWeather(forLocation: location) { [weak self] result in
+                switch result {
+                case .success(let updatedLocation):
+                    // Add the location to the repository with updated weather data
+                    self?.locationRepository.addLocation(updatedLocation)
+                    self?.onLocationRegistered?() // Notify that the location has been registered
+                case .failure(let error):
+                    self?.onLocationFail?()
+                    print("Failed to fetch weather data: \(error)")
+                }
+            }
+        } else {
+            print("Attempted to register a location with invalid coordinates")
+        }
     }
-    
-    // MARK: - CLLocationManagerDelegate
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.first else { return }
-        let cityName = "" // TODO: Use reverse geocoding to get the city name
-        let locationEntity = LocationEntity(cityName: cityName, latitude: location.coordinate.latitude , longitude: location.coordinate.longitude )
-        registerLocation(location: locationEntity)
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        // Handle location manager errors
-        print("Failed to get user location: \(error.localizedDescription)")
+
+    /// Registers a location using a city name
+    func registerLocation(cityName: String) {
+        // API call to fetch location data based on city name
+        weatherRepository.fetchWeather(forCity: cityName) { [weak self] result in
+            switch result {
+            case .success(let location):
+                self?.locationRepository.addLocation(location)
+                self?.onLocationRegistered?() // Notify that the location has been registered
+            case .failure(let error):
+                self?.onLocationFail?()
+                print("Failed to register location by city name: \(error)")
+            }
+        }
     }
 }
+
+

@@ -10,9 +10,11 @@ import UIKit
 class WeatherStatusCoordinator: Coordinator {
     var childCoordinators: [Coordinator] = []
     var navigationController: UINavigationController
+    
     private let locationRepository: LocationRepositoryInterface
     private let weatherRepository: WeatherRepositoryInterface
-    
+    var weatherStatusViewController: WeatherStatusViewController?
+
     init(navigationController: UINavigationController,
          locationRepository: LocationRepositoryInterface,
          weatherRepository: WeatherRepositoryInterface) {
@@ -22,20 +24,40 @@ class WeatherStatusCoordinator: Coordinator {
     }
     
     func start() {
-        showWeatherStatus()
-    }
-    
-    private func showWeatherStatus() {
-        let weatherStatusViewModel = WeatherStatusViewModel(weatherRepository: weatherRepository)
+        let weatherStatusViewModel = WeatherStatusViewModel(weatherRepository: weatherRepository, locationRepository: locationRepository)
         let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel)
         weatherStatusViewController.coordinator = self
-        navigationController.setViewControllers([weatherStatusViewController], animated: false)
+        self.weatherStatusViewController = weatherStatusViewController // Guardar referencia para actualizar la vista después
+        navigationController.pushViewController(weatherStatusViewController, animated: true)
     }
     
     func showLocationRegistration() {
-        let locationRegistrationCoordinator = LocationRegistrationCoordinator(navigationController: navigationController, locationRepository: locationRepository)
-        childCoordinators.append(locationRegistrationCoordinator)
+        guard let weatherStatusViewController = navigationController.topViewController as? WeatherStatusViewController else {
+            fatalError("WeatherStatusViewController is not the top view controller")
+        }
+        
+        let locationRegistrationCoordinator = LocationRegistrationCoordinator(
+            navigationController: navigationController,
+            locationRepository: locationRepository,
+            weatherRepository: weatherRepository,
+            weatherStatusViewController: weatherStatusViewController // Asegúrate de pasar la instancia desempaquetada
+        )
+        locationRegistrationCoordinator.parentCoordinator = self
+        addChildCoordinator(locationRegistrationCoordinator)
         locationRegistrationCoordinator.start()
+    }
+
+    func didRegisterLocation() {
+        weatherStatusViewController?.reloadWeatherData()
+    }
+
+    func childDidFinish(_ child: Coordinator?) {
+        for (index, coordinator) in childCoordinators.enumerated() {
+            if coordinator === child {
+                childCoordinators.remove(at: index)
+                break
+            }
+        }
     }
 }
 

@@ -12,7 +12,7 @@ class WeatherDetailViewController: UIViewController {
     // MARK: - Properties
     
     private let location: Location
-
+    
     private let backgroundImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill

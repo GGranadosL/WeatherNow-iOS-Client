@@ -13,6 +13,7 @@ class MainCoordinator: Coordinator {
     var navigationController: UINavigationController
     private let locationRepository: LocationRepositoryInterface
     private let weatherRepository: WeatherRepositoryInterface
+    var weatherStatusViewController: WeatherStatusViewController?
     
     // MARK: - Initialization
     
@@ -31,22 +32,33 @@ class MainCoordinator: Coordinator {
     }
     
     private func showWeatherStatus() {
-        let weatherStatusViewModel = WeatherStatusViewModel(weatherRepository: weatherRepository)
+        let weatherStatusViewModel = WeatherStatusViewModel(weatherRepository: weatherRepository, locationRepository: locationRepository)
         let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel)
         weatherStatusViewController.coordinator = self
+        self.weatherStatusViewController = weatherStatusViewController // Guardar la referencia
         navigationController.setViewControllers([weatherStatusViewController], animated: false)
     }
     
     func showLocationRegistration() {
-        let locationRegistrationCoordinator = LocationRegistrationCoordinator(navigationController: navigationController, locationRepository: locationRepository)
-        childCoordinators.append(locationRegistrationCoordinator)
+        guard let weatherStatusViewController = weatherStatusViewController else {
+               print("WeatherStatusViewController is nil")
+               return
+        }
+        
+        let locationRegistrationCoordinator = LocationRegistrationCoordinator(
+            navigationController: navigationController,
+            locationRepository: locationRepository,
+            weatherRepository: weatherRepository,
+            weatherStatusViewController: weatherStatusViewController
+        )
+        
+        addChildCoordinator(locationRegistrationCoordinator)
         locationRegistrationCoordinator.start()
     }
+    
+    func didRegisterLocation() {
+        weatherStatusViewController?.viewModel.loadWeatherData()
+        weatherStatusViewController?.tableView.reloadData()
+    }
+
 }
-
-
-
-
-
-
-

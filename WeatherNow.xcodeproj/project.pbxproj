@@ -35,7 +35,7 @@
 		C0CB5C422C78374800756B47 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CB5C412C78374800756B47 /* MainCoordinator.swift */; };
 		C0CB5C472C7838C400756B47 /* LocationRepositoryInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CB5C462C7838C400756B47 /* LocationRepositoryInterface.swift */; };
 		C0CB5C492C7838E500756B47 /* WeatherRepositoryInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CB5C482C7838E500756B47 /* WeatherRepositoryInterface.swift */; };
-		C0CB5C4D2C783A4D00756B47 /* UserDefaultsLocationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CB5C4C2C783A4D00756B47 /* UserDefaultsLocationRepository.swift */; };
+		C0CB5C4D2C783A4D00756B47 /* LocationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CB5C4C2C783A4D00756B47 /* LocationRepository.swift */; };
 		C0CB5C4F2C783A9500756B47 /* WeatherRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CB5C4E2C783A9500756B47 /* WeatherRepository.swift */; };
 		C0CB5C562C783AFA00756B47 /* LocationEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CB5C552C783AFA00756B47 /* LocationEntity.swift */; };
 /* End PBXBuildFile section */
@@ -90,7 +90,7 @@
 		C0CB5C412C78374800756B47 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		C0CB5C462C7838C400756B47 /* LocationRepositoryInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRepositoryInterface.swift; sourceTree = "<group>"; };
 		C0CB5C482C7838E500756B47 /* WeatherRepositoryInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherRepositoryInterface.swift; sourceTree = "<group>"; };
-		C0CB5C4C2C783A4D00756B47 /* UserDefaultsLocationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsLocationRepository.swift; sourceTree = "<group>"; };
+		C0CB5C4C2C783A4D00756B47 /* LocationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRepository.swift; sourceTree = "<group>"; };
 		C0CB5C4E2C783A9500756B47 /* WeatherRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherRepository.swift; sourceTree = "<group>"; };
 		C0CB5C552C783AFA00756B47 /* LocationEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationEntity.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -322,7 +322,7 @@
 		C0CB5C4B2C783A2E00756B47 /* Repositories */ = {
 			isa = PBXGroup;
 			children = (
-				C0CB5C4C2C783A4D00756B47 /* UserDefaultsLocationRepository.swift */,
+				C0CB5C4C2C783A4D00756B47 /* LocationRepository.swift */,
 				C0CB5C4E2C783A9500756B47 /* WeatherRepository.swift */,
 			);
 			path = Repositories;
@@ -480,7 +480,7 @@
 				C0CB5C562C783AFA00756B47 /* LocationEntity.swift in Sources */,
 				C014B9072C790CB20098B8DB /* Bindable.swift in Sources */,
 				C0C803202C7CDE45001EAC04 /* APIClient.swift in Sources */,
-				C0CB5C4D2C783A4D00756B47 /* UserDefaultsLocationRepository.swift in Sources */,
+				C0CB5C4D2C783A4D00756B47 /* LocationRepository.swift in Sources */,
 				C0CB5C492C7838E500756B47 /* WeatherRepositoryInterface.swift in Sources */,
 				C014B90E2C7913AC0098B8DB /* WeatherStatusTableViewCell.swift in Sources */,
 				C014B9102C792B9A0098B8DB /* WeatherStatusCoordinator.swift in Sources */,

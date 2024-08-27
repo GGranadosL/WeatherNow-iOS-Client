@@ -7,17 +7,15 @@
 
 import UIKit
 
-// Protocolo Coordinator, restringido a clases
+// Coordinator protocol to define the basic structure of a coordinator
 protocol Coordinator: AnyObject {
     var childCoordinators: [Coordinator] { get set }
     var navigationController: UINavigationController { get set }
     
-    // Método para iniciar el flujo de navegación
     func start()
     func showLocationRegistration()
 }
 
-// Extensión para métodos comunes de coordinadores
 extension Coordinator {
     func addChildCoordinator(_ coordinator: Coordinator) {
         childCoordinators.append(coordinator)
@@ -27,5 +25,4 @@ extension Coordinator {
         childCoordinators.removeAll { $0 === coordinator }
     }
 }
-
 

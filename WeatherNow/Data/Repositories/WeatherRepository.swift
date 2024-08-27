@@ -9,6 +9,17 @@ import Foundation
 
 /// A repository that fetches weather data from an API using the APIClient.
 class WeatherRepository: WeatherRepositoryInterface {
+    func fetchWeather(forCity cityName: String, completion: @escaping (Result<LocationEntity, Error>) -> Void) {
+        apiClient.fetchWeather(forCity: cityName) { result in
+            switch result {
+            case .success(let location):
+                completion(.success(location))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+    
 
     private let apiClient: APIClient
     
