@@ -13,6 +13,7 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     // MARK: - Properties
     
     let viewModel: WeatherStatusViewModel
+    let notificationService: WeatherNotificationService
     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -39,8 +40,9 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
 
     // MARK: - Initialization
     
-    init(viewModel: WeatherStatusViewModel) {
+    init(viewModel: WeatherStatusViewModel, notificationService: WeatherNotificationService) {
         self.viewModel = viewModel
+        self.notificationService = notificationService
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -155,17 +157,16 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     }
 
     @objc private func registerButtonTapped() {
-        // Desempaquetar navigationController
         guard let navigationController = navigationController else {
-            // Manejar el caso en que no haya un navigationController
             return
         }
         
         let locationRegistrationCoordinator = LocationRegistrationCoordinator(
-            navigationController: navigationController, // Aquí ya está desempaquetado
+            navigationController: navigationController,
             locationRepository: viewModel.locationRepository,
             weatherRepository: viewModel.weatherRepository,
-            weatherStatusViewController: self // Pasa la referencia de la vista actual
+            weatherStatusViewController: self,
+            notificationService: notificationService
         )
         
         locationRegistrationCoordinator.start()

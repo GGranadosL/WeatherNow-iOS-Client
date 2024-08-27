@@ -14,6 +14,7 @@ class LocationRegistrationViewModel: NSObject {
     
     private let locationRepository: LocationRepositoryInterface
     private let weatherRepository: WeatherRepositoryInterface
+    private let notificationService: WeatherNotificationService
     
     // Callback to notify when location registration is successful
     var onLocationRegistered: (() -> Void)?
@@ -21,10 +22,10 @@ class LocationRegistrationViewModel: NSObject {
     
     // MARK: - Initialization
     
-    init(locationRepository: LocationRepositoryInterface, weatherRepository: WeatherRepositoryInterface) {
+    init(locationRepository: LocationRepositoryInterface, weatherRepository: WeatherRepositoryInterface, notificationService: WeatherNotificationService) {
         self.locationRepository = locationRepository
         self.weatherRepository = weatherRepository
-        locationRepository.clearInvalidLocations() // Clear any invalid locations from the repository
+        self.notificationService = notificationService
         super.init()
     }
     
@@ -32,16 +33,17 @@ class LocationRegistrationViewModel: NSObject {
     
     /// Registers a location using latitude and longitude
     func registerLocation(location: LocationEntity) {
-        // Ensure the location has valid coordinates before proceeding
         if location.latitude != 0.0 && location.longitude != 0.0 {
             weatherRepository.fetchWeather(forLocation: location) { [weak self] result in
                 switch result {
                 case .success(let updatedLocation):
-                    // Add the location to the repository with updated weather data
                     self?.locationRepository.addLocation(updatedLocation)
-                    self?.onLocationRegistered?() // Notify that the location has been registered
+                    self?.onLocationRegistered?()
+                    
+                    // Check for significant weather changes and trigger a notification if necessary
+                    self?.notificationService.checkForSignificantWeatherChange(previousWeather: location, currentWeather: updatedLocation)
+                    
                 case .failure(let error):
-                    self?.onLocationFail?()
                     print("Failed to fetch weather data: \(error)")
                 }
             }
@@ -49,6 +51,7 @@ class LocationRegistrationViewModel: NSObject {
             print("Attempted to register a location with invalid coordinates")
         }
     }
+
 
     /// Registers a location using a city name
     func registerLocation(cityName: String) {

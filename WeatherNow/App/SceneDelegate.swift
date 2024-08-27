@@ -19,12 +19,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         let navigationController = UINavigationController()
         
-        let locationRepository = LocationRepository() // Asegúrate de inicializar tu LocationRepository
-        let weatherRepository = APIClient() // Asegúrate de inicializar tu WeatherRepository
+        let locationRepository = LocationRepository() // Initialize your LocationRepository
+        let weatherRepository = APIClient() // Initialize your WeatherRepository
         
-        let mainCoordinator = MainCoordinator(navigationController: navigationController,
-                                              locationRepository: locationRepository,
-                                              weatherRepository: weatherRepository)
+        // Initialize the NotificationService and WeatherNotificationService
+        let notificationService = NotificationService() // Your implementation of NotificationService
+        let weatherNotificationService = WeatherNotificationService(notificationService: notificationService)
+        
+        // Pass the notificationService to MainCoordinator
+        let mainCoordinator = MainCoordinator(
+            navigationController: navigationController,
+            locationRepository: locationRepository,
+            weatherRepository: weatherRepository,
+            notificationService: weatherNotificationService
+        )
         
         self.mainCoordinator = mainCoordinator
         mainCoordinator.start()
@@ -60,9 +68,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
-
-        // Save changes in the application's managed object context when the application transitions to the background.
-        (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
     }
 
 

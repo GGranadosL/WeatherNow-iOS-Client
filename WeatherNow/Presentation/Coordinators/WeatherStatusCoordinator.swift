@@ -2,32 +2,46 @@
 //  WeatherStatusCoordinator.swift
 //  WeatherNow
 //
-//  Created by Gerardo  Granados Lopez on 23/08/24.
+//  Created by Gerardo Granados Lopez on 23/08/24.
 //
 
 import UIKit
 
 class WeatherStatusCoordinator: Coordinator {
+    
+    // MARK: - Properties
+    
     var childCoordinators: [Coordinator] = []
     var navigationController: UINavigationController
     
     private let locationRepository: LocationRepositoryInterface
     private let weatherRepository: WeatherRepositoryInterface
+    private let notificationService: WeatherNotificationService
     var weatherStatusViewController: WeatherStatusViewController?
 
+    // MARK: - Initialization
+    
     init(navigationController: UINavigationController,
          locationRepository: LocationRepositoryInterface,
-         weatherRepository: WeatherRepositoryInterface) {
+         weatherRepository: WeatherRepositoryInterface,
+         notificationService: WeatherNotificationService) {
         self.navigationController = navigationController
         self.locationRepository = locationRepository
         self.weatherRepository = weatherRepository
+        self.notificationService = notificationService
     }
     
+    // MARK: - Coordinator Methods
+    
     func start() {
-        let weatherStatusViewModel = WeatherStatusViewModel(weatherRepository: weatherRepository, locationRepository: locationRepository)
-        let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel)
+        let weatherStatusViewModel = WeatherStatusViewModel(
+            weatherRepository: weatherRepository,
+            locationRepository: locationRepository,
+            notificationService: notificationService  
+        )
+        let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel, notificationService: notificationService)
         weatherStatusViewController.coordinator = self
-        self.weatherStatusViewController = weatherStatusViewController // Guardar referencia para actualizar la vista después
+        self.weatherStatusViewController = weatherStatusViewController
         navigationController.pushViewController(weatherStatusViewController, animated: true)
     }
     
@@ -40,7 +54,8 @@ class WeatherStatusCoordinator: Coordinator {
             navigationController: navigationController,
             locationRepository: locationRepository,
             weatherRepository: weatherRepository,
-            weatherStatusViewController: weatherStatusViewController // Asegúrate de pasar la instancia desempaquetada
+            weatherStatusViewController: weatherStatusViewController, 
+            notificationService: notificationService
         )
         locationRegistrationCoordinator.parentCoordinator = self
         addChildCoordinator(locationRegistrationCoordinator)
@@ -52,14 +67,7 @@ class WeatherStatusCoordinator: Coordinator {
     }
 
     func childDidFinish(_ child: Coordinator?) {
-        for (index, coordinator) in childCoordinators.enumerated() {
-            if coordinator === child {
-                childCoordinators.remove(at: index)
-                break
-            }
-        }
+        guard let child = child else { return }
+        childCoordinators.removeAll { $0 === child }
     }
 }
-
-
-

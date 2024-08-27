@@ -8,8 +8,6 @@
 import UIKit
 
 class LocationRegistrationCoordinator: Coordinator {
-    func showLocationRegistration() {}
-    
     
     // MARK: - Properties
     
@@ -17,6 +15,7 @@ class LocationRegistrationCoordinator: Coordinator {
     var navigationController: UINavigationController
     private let locationRepository: LocationRepositoryInterface
     private let weatherRepository: WeatherRepositoryInterface
+    private let notificationService: WeatherNotificationService
     private weak var weatherStatusViewController: WeatherStatusViewController?
     weak var parentCoordinator: Coordinator?
     
@@ -25,17 +24,23 @@ class LocationRegistrationCoordinator: Coordinator {
     init(navigationController: UINavigationController,
          locationRepository: LocationRepositoryInterface,
          weatherRepository: WeatherRepositoryInterface,
-         weatherStatusViewController: WeatherStatusViewController) {
+         weatherStatusViewController: WeatherStatusViewController,
+         notificationService: WeatherNotificationService) { 
         self.navigationController = navigationController
         self.locationRepository = locationRepository
         self.weatherRepository = weatherRepository
         self.weatherStatusViewController = weatherStatusViewController
+        self.notificationService = notificationService
     }
     
     // MARK: - Coordinator Methods
     
     func start() {
-        let locationRegistrationViewModel = LocationRegistrationViewModel(locationRepository: locationRepository, weatherRepository: weatherRepository)
+        let locationRegistrationViewModel = LocationRegistrationViewModel(
+            locationRepository: locationRepository,
+            weatherRepository: weatherRepository,
+            notificationService: notificationService
+        )
         
         locationRegistrationViewModel.onLocationRegistered = { [weak self] in
             self?.didRegisterLocation()
@@ -53,25 +58,20 @@ class LocationRegistrationCoordinator: Coordinator {
         
         navigationController.dismiss(animated: true, completion: nil)
         
-        // Cast parentCoordinator to WeatherStatusCoordinator and call didRegisterLocation
         if let parent = parentCoordinator as? WeatherStatusCoordinator {
             parent.didRegisterLocation()
-        } else {
-            // Handle other types of coordinators if necessary
         }
     }
     
     func didFinish() {
         navigationController.dismiss(animated: true, completion: nil)
         
-        // Cast parentCoordinator to WeatherStatusCoordinator and call didRegisterLocation
         if let parent = parentCoordinator as? WeatherStatusCoordinator {
             parent.didRegisterLocation()
-        } else {
-            // Handle other types of coordinators if necessary
         }
     }
+    
+    func showLocationRegistration() {
+        start() // This calls start to begin the registration process
+    }
 }
-
-
-
