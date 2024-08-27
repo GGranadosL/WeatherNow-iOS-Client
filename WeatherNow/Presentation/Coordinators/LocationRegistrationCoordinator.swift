@@ -8,25 +8,32 @@
 import UIKit
 
 class LocationRegistrationCoordinator: Coordinator {
+    func showLocationRegistration() {
+        //
+    }
     
     var childCoordinators: [Coordinator] = []
     var navigationController: UINavigationController
     private let locationRepository: LocationRepositoryInterface
     
-    init(navigationController: UINavigationController, locationRepository: LocationRepositoryInterface) {
+    init(navigationController: UINavigationController,
+         locationRepository: LocationRepositoryInterface) {
         self.navigationController = navigationController
         self.locationRepository = locationRepository
     }
     
     func start() {
-        let viewModel = LocationRegistrationViewModel(locationRepository: locationRepository)
-        let viewController = LocationRegistrationViewController(viewModel: viewModel)
-        
-        navigationController.pushViewController(viewController, animated: true)
+        let locationRegistrationViewModel = LocationRegistrationViewModel(locationRepository: locationRepository)
+        let locationRegistrationViewController = LocationRegistrationViewController(viewModel: locationRegistrationViewModel)
+        locationRegistrationViewController.coordinator = self
+        navigationController.present(locationRegistrationViewController, animated: true, completion: nil)
     }
     
-    func didRegisterLocation() {
-        navigationController.popViewController(animated: true)
+    func didFinish() {
+        navigationController.dismiss(animated: true, completion: nil)
+        // You might want to notify the parent coordinator about completion here
     }
 }
+
+
 

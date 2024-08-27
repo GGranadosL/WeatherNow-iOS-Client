@@ -8,46 +8,36 @@
 import UIKit
 
 class WeatherStatusCoordinator: Coordinator {
-
-    // MARK: - Properties
-
-    var childCoordinators = [Coordinator]()
+    var childCoordinators: [Coordinator] = []
     var navigationController: UINavigationController
-    private let weatherRepository: WeatherRepositoryInterface
     private let locationRepository: LocationRepositoryInterface
-
-    // MARK: - Initialization
-
+    private let weatherRepository: WeatherRepositoryInterface
+    
     init(navigationController: UINavigationController,
-         weatherRepository: WeatherRepositoryInterface,
-         locationRepository: LocationRepositoryInterface) {
+         locationRepository: LocationRepositoryInterface,
+         weatherRepository: WeatherRepositoryInterface) {
         self.navigationController = navigationController
-        self.weatherRepository = weatherRepository
         self.locationRepository = locationRepository
+        self.weatherRepository = weatherRepository
     }
-
-    // MARK: - Coordinator
-
+    
     func start() {
-        let viewModel = WeatherStatusViewModel(
-            locations: locationRepository.getLocations(),
-            weatherData: [],
-            weatherRepository: weatherRepository,
-            locationRepository: locationRepository
-        )
-        let viewController = WeatherStatusViewController(viewModel: viewModel)
-        viewController.title = "Weather Status"
-        viewController.coordinator = self
-        navigationController.setViewControllers([viewController], animated: false)
+        showWeatherStatus()
     }
-
+    
+    private func showWeatherStatus() {
+        let weatherStatusViewModel = WeatherStatusViewModel(weatherRepository: weatherRepository)
+        let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel)
+        weatherStatusViewController.coordinator = self
+        navigationController.setViewControllers([weatherStatusViewController], animated: false)
+    }
+    
     func showLocationRegistration() {
-        let locationRegistrationCoordinator = LocationRegistrationCoordinator(
-            navigationController: navigationController,
-            locationRepository: locationRepository
-        )
+        let locationRegistrationCoordinator = LocationRegistrationCoordinator(navigationController: navigationController, locationRepository: locationRepository)
         childCoordinators.append(locationRegistrationCoordinator)
         locationRegistrationCoordinator.start()
     }
 }
+
+
 

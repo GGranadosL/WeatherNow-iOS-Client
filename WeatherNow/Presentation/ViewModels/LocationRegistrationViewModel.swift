@@ -6,46 +6,52 @@
 //
 
 import Foundation
+import CoreLocation
 
-class LocationRegistrationViewModel {
+/// ViewModel for managing the location registration process.
+class LocationRegistrationViewModel: NSObject, CLLocationManagerDelegate {
     
     // MARK: - Properties
     
     private let locationRepository: LocationRepositoryInterface
-    var onSaveSuccess: (() -> Void)?
-    var onSaveError: ((Error) -> Void)?
+    private var locationManager: CLLocationManager?
+    
+    // Callback to notify when location registration is successful
+    var onLocationRegistered: (() -> Void)?
     
     // MARK: - Initialization
     
     init(locationRepository: LocationRepositoryInterface) {
         self.locationRepository = locationRepository
+        super.init() // Initialize the superclass (NSObject)
+        setupLocationManager()
     }
     
-    // MARK: - Public Methods
+    // MARK: - Private Methods
     
-    func generateNewId() -> String {
-        return UUID().uuidString
+    private func setupLocationManager() {
+        locationManager = CLLocationManager()
+        locationManager?.delegate = self
+        locationManager?.requestWhenInUseAuthorization()
+        locationManager?.startUpdatingLocation()
     }
     
-    func currentDate() -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .none
-        return dateFormatter.string(from: Date())
+    func registerLocation(location: LocationEntity) {
+        locationRepository.addLocation(location)
+        onLocationRegistered?()
     }
     
-    func saveLocation(cityName: String, latitude: String, longitude: String) {
-        let id = generateNewId()
-        let registrationDate = currentDate()
-        let location = Location(id: id, cityName: cityName, latitude: latitude, longitude: longitude, registrationDate: registrationDate)
-        
-        do {
-            try locationRepository.saveLocation(location)
-            onSaveSuccess?()
-        } catch {
-            onSaveError?(error)
-        }
+    // MARK: - CLLocationManagerDelegate
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.first else { return }
+        let cityName = "" // TODO: Use reverse geocoding to get the city name
+        let locationEntity = LocationEntity(cityName: cityName, latitude: location.coordinate.latitude , longitude: location.coordinate.longitude )
+        registerLocation(location: locationEntity)
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // Handle location manager errors
+        print("Failed to get user location: \(error.localizedDescription)")
     }
 }
-
-

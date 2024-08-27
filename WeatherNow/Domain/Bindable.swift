@@ -20,14 +20,34 @@ class Bindable<T> {
         self.value = value
     }
     
+    /// Binds a listener to the Bindable instance.
+    /// - Parameter listener: The closure to be called when the value changes.
     func bind(listener: @escaping (T) -> Void) {
-        listeners.append(listener)
-        listener(value)
+        // Evitar agregar listeners duplicados
+        if !listeners.contains(where: { $0 as AnyObject === listener as AnyObject }) {
+            listeners.append(listener)
+            listener(value)
+        }
     }
     
-    private func notifyListeners() {
+    /// Unbinds a listener from the Bindable instance.
+    /// - Parameter listener: The closure to be removed from the listeners.
+    func unbind(listener: @escaping (T) -> Void) {
+        listeners = listeners.filter { $0 as AnyObject !== listener as AnyObject }
+    }
+    
+    /// Notifies all listeners of a value change.
+    func notifyListeners() {
         listeners.forEach { $0(value) }
     }
+    
+    /// Notifies all listeners on the main thread.
+    func notifyListenersOnMainThread() {
+        DispatchQueue.main.async {
+            self.notifyListeners()
+        }
+    }
 }
+
 
 

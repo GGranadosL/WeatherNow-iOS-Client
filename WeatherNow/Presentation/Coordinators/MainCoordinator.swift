@@ -8,36 +8,44 @@
 import UIKit
 
 class MainCoordinator: Coordinator {
-
-    // MARK: - Properties
-
-    var childCoordinators = [Coordinator]()
+    
+    var childCoordinators: [Coordinator] = []
     var navigationController: UINavigationController
-    private let weatherRepository: WeatherRepositoryInterface
     private let locationRepository: LocationRepositoryInterface
-
+    private let weatherRepository: WeatherRepositoryInterface
+    
     // MARK: - Initialization
-
+    
     init(navigationController: UINavigationController,
-         weatherRepository: WeatherRepositoryInterface,
-         locationRepository: LocationRepositoryInterface) {
+         locationRepository: LocationRepositoryInterface,
+         weatherRepository: WeatherRepositoryInterface) {
         self.navigationController = navigationController
-        self.weatherRepository = weatherRepository
         self.locationRepository = locationRepository
+        self.weatherRepository = weatherRepository
     }
-
+    
     // MARK: - Coordinator
-
+    
     func start() {
-        let weatherStatusCoordinator = WeatherStatusCoordinator(
-            navigationController: navigationController,
-            weatherRepository: weatherRepository,
-            locationRepository: locationRepository
-        )
-        childCoordinators.append(weatherStatusCoordinator)
-        weatherStatusCoordinator.start()
+        showWeatherStatus()
+    }
+    
+    private func showWeatherStatus() {
+        let weatherStatusViewModel = WeatherStatusViewModel(weatherRepository: weatherRepository)
+        let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel)
+        weatherStatusViewController.coordinator = self
+        navigationController.setViewControllers([weatherStatusViewController], animated: false)
+    }
+    
+    func showLocationRegistration() {
+        let locationRegistrationCoordinator = LocationRegistrationCoordinator(navigationController: navigationController, locationRepository: locationRepository)
+        childCoordinators.append(locationRegistrationCoordinator)
+        locationRegistrationCoordinator.start()
     }
 }
+
+
+
 
 
 

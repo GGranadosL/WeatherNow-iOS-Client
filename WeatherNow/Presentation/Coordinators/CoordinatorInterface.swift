@@ -14,6 +14,7 @@ protocol Coordinator: AnyObject {
     
     // Método para iniciar el flujo de navegación
     func start()
+    func showLocationRegistration()
 }
 
 // Extensión para métodos comunes de coordinadores

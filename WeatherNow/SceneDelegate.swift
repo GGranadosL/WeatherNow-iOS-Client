@@ -8,38 +8,30 @@
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-
+    
     var window: UIWindow?
     var mainCoordinator: MainCoordinator?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
 
         guard let windowScene = (scene as? UIWindowScene) else { return }
-
-        // Create a new UIWindow instance and set the windowScene
-        let window = UIWindow(windowScene: windowScene)
-        self.window = window
         
-        // Create the navigation controller
+        let window = UIWindow(windowScene: windowScene)
         let navigationController = UINavigationController()
         
-        // Create repositories or services
-        let weatherRepository = WeatherRepository() // Replace with your actual implementation
-        let locationRepository = LocationRepository() // Replace with your actual implementation
+        let locationRepository = UserDefaultsLocationRepository() // Asegúrate de inicializar tu LocationRepository
+        let weatherRepository = APIClient() // Asegúrate de inicializar tu WeatherRepository
         
-        // Create the main coordinator
-        mainCoordinator = MainCoordinator(
-            navigationController: navigationController,
-            weatherRepository: weatherRepository,
-            locationRepository: locationRepository
-        )
+        let mainCoordinator = MainCoordinator(navigationController: navigationController,
+                                              locationRepository: locationRepository,
+                                              weatherRepository: weatherRepository)
         
-        // Start the main coordinator
-        mainCoordinator?.start()
+        self.mainCoordinator = mainCoordinator
+        mainCoordinator.start()
         
-        // Set the root view controller of the window to the navigation controller managed by the main coordinator
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
+        self.window = window
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

@@ -6,78 +6,123 @@
 //
 
 import UIKit
+import CoreLocation
 
 class LocationRegistrationViewController: UIViewController {
-    
-    private let locationRegistrationView = LocationRegistrationView()
+
+    // MARK: - Properties
+
     private let viewModel: LocationRegistrationViewModel
+    private let locationManager = CLLocationManager()
+    
+    private let cityNameTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "City Name"
+        textField.borderStyle = .roundedRect
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
+    }()
+    
+    private let saveButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Save Location", for: .normal)
+        button.backgroundColor = .systemBlue
+        button.tintColor = .white
+        button.layer.cornerRadius = 8
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    private var location: CLLocation?
+    weak var coordinator: LocationRegistrationCoordinator?
     
     // MARK: - Initialization
-    
+
     init(viewModel: LocationRegistrationViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        locationManager.delegate = self
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // MARK: - Lifecycle
-    
-    override func loadView() {
-        view = locationRegistrationView
-    }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureView()
+        setupView()
+        setupLocationManager()
         bindViewModel()
     }
-    
-    // MARK: - Configure View
-    
-    private func configureView() {
-        locationRegistrationView.configure(id: viewModel.generateNewId(), registrationDate: viewModel.currentDate())
-        locationRegistrationView.saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
-    }
-    
-    // MARK: - Bind ViewModel
-    
-    private func bindViewModel() {
-        viewModel.onSaveSuccess = { [weak self] in
-            self?.showSuccessAlert()
-        }
+
+    // MARK: - Setup
+
+    private func setupView() {
+        view.backgroundColor = .white
+        title = "Register Location"
         
-        viewModel.onSaveError = { [weak self] error in
-            self?.showErrorAlert(message: error.localizedDescription)
-        }
+        view.addSubview(cityNameTextField)
+        view.addSubview(saveButton)
+        
+        NSLayoutConstraint.activate([
+            cityNameTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            cityNameTextField.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -20),
+            cityNameTextField.widthAnchor.constraint(equalToConstant: 250),
+            
+            saveButton.topAnchor.constraint(equalTo: cityNameTextField.bottomAnchor, constant: 20),
+            saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            saveButton.widthAnchor.constraint(equalToConstant: 150),
+            saveButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
     }
     
-    // MARK: - Actions
-    
+    private func setupLocationManager() {
+        locationManager.requestWhenInUseAuthorization()
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.startUpdatingLocation()
+        }
+    }
+
+    private func bindViewModel() {
+        // Bind to view model properties if needed
+    }
+
     @objc private func saveButtonTapped() {
-        guard let cityName = locationRegistrationView.cityNameTextField.text,
-              let latitude = locationRegistrationView.latitudeTextField.text,
-              let longitude = locationRegistrationView.longitudeTextField.text else {
-            showErrorAlert(message: "Please fill in all fields.")
+        guard let cityName = cityNameTextField.text, !cityName.isEmpty else {
+            // Show an alert or handle error
             return
         }
+
+        let id = UUID().uuidString
+        let registrationDate = Date()
+
+        // Convert CLLocationDegrees to String
+        let latitude = location?.coordinate.latitude
+        let longitude = location?.coordinate.longitude
         
-        viewModel.saveLocation(cityName: cityName, latitude: latitude, longitude: longitude)
+        let location = LocationEntity(cityName: cityName, latitude: latitude ?? 0, longitude: longitude ?? 0)
+        
+        viewModel.registerLocation(location: location)
+        
+        // Optionally, dismiss or navigate back
+        dismiss(animated: true, completion: nil)
+    }
+}
+
+// MARK: - CLLocationManagerDelegate
+
+extension LocationRegistrationViewController: CLLocationManagerDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let currentLocation = locations.last {
+            location = currentLocation
+        }
     }
     
-    // MARK: - Alerts
-    
-    private func showSuccessAlert() {
-        let alert = UIAlertController(title: "Success", message: "Location saved successfully.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
-    
-    private func showErrorAlert(message: String) {
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // Handle location error
     }
 }
