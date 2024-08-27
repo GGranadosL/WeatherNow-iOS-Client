@@ -1,14 +1,13 @@
 //
-//  WeatherNowTests.swift
+//  WeatherRepositoryTests.swift
 //  WeatherNowTests
 //
-//  Created by Gerardo  Granados Lopez on 22/08/24.
+//  Created by Gerardo  Granados Lopez on 27/08/24.
 //
 
 import XCTest
-@testable import WeatherNow
 
-final class WeatherNowTests: XCTestCase {
+final class WeatherRepositoryTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
