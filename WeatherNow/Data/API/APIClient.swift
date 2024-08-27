@@ -10,16 +10,7 @@ import Foundation
 // API client for fetching weather data from a remote service.
 class APIClient: WeatherRepositoryInterface {
     
-    /// Retrieves the API key from the Keychain.
-    /// - Returns: The API key as a String.
-   // private func getAPIKeyFromKeychain() -> String {
-        // Implement Keychain access here to securely retrieve the API key.
-        // For demonstration purposes, returning a hardcoded value.
-   //     return "a5f8704cc91234ed73362e270c5eb343"
-   // }
-
-    
-    private let apiKey = "a5f8704cc91234ed73362e270c5eb343" //KeychainHelper.shared.getAPIKey() // Retrieves the API key from the Keychain.
+    private let apiKey = KeychainHelper.shared.getAPIKey() // Retrieves the API key from the Keychain.
     
     // Fetches weather data for a specified location.
     func fetchWeather(forLocation location: LocationEntity, completion: @escaping (Result<LocationEntity, Error>) -> Void) {
@@ -50,6 +41,8 @@ class APIClient: WeatherRepositoryInterface {
                 updatedLocation.humidity = weatherResponse.main.humidity
                 updatedLocation.pressure = weatherResponse.main.pressure
                 updatedLocation.windSpeed = weatherResponse.wind.speed
+                updatedLocation.sunset = Date(timeIntervalSince1970: TimeInterval(weatherResponse.sys.sunset))
+                updatedLocation.sunrise = Date(timeIntervalSince1970: TimeInterval(weatherResponse.sys.sunrise))
                 completion(.success(updatedLocation))
             } catch {
                 completion(.failure(error))
@@ -61,7 +54,7 @@ class APIClient: WeatherRepositoryInterface {
     // Constructs the URL for the weather API request.
     private func buildURL(for location: LocationEntity) -> URL? {
         let baseURL = "https://api.openweathermap.org/data/2.5/weather"
-        let urlString = "\(baseURL)?lat=\(location.latitude)&lon=\(location.longitude)&appid=\(apiKey)"
+        let urlString = "\(baseURL)?lat=\(location.latitude)&lon=\(location.longitude)&appid=\(apiKey ?? "")"
         return URL(string: urlString)
     }
     

@@ -12,9 +12,14 @@ import CoreData
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
-
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Save API key if not already saved
+        if KeychainHelper.shared.getAPIKey() == nil {
+            let apiKey = "a5f8704cc91234ed73362e270c5eb343"
+            KeychainHelper.shared.saveAPIKey(apiKey)
+        }
+        
         return true
     }
 

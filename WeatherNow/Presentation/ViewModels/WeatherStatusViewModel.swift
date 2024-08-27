@@ -12,14 +12,30 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
     
     // MARK: - Properties
     
+    // Bindable array of LocationEntity objects to track current and user-added locations
     let locations: Bindable<[LocationEntity]> = Bindable([])
+    
     private let locationManager = CLLocationManager()
     private let weatherRepository: WeatherRepositoryInterface
     
-    // Default location in case user denies access
-    private let defaultLocation = LocationEntity(id: UUID(), cityName: "New York", latitude: 40.7128, longitude: -74.0060, registrationDate: Date(), temperature: 295.2)
+    // Stores the current location's weather information if available
+    var currentLocationWeather: LocationEntity? {
+        didSet {
+            locations.notifyListeners()
+        }
+    }
     
-    private var hasAddedCurrentLocation = false // To track if "Current Location" has been added
+    // Stores locations added by the user
+    var userAddedLocations: [LocationEntity] = [] {
+        didSet {
+            locations.notifyListeners()
+        }
+    }
+    
+    // Checks if the current location weather is available
+    var hasCurrentLocationWeather: Bool {
+        return currentLocationWeather != nil
+    }
 
     // MARK: - Initialization
     
@@ -32,51 +48,27 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
     
     // MARK: - Public Methods
     
-    func addLocation(_ location: LocationEntity) {
-        var currentLocations = locations.value
-        
-        if location.cityName == "Current Location" {
-            if hasAddedCurrentLocation {
-                return
-            }
-            hasAddedCurrentLocation = true
-        }
-        
-        if !currentLocations.contains(where: { $0.id == location.id }) {
-            currentLocations.insert(location, at: 0)
-            locations.value = currentLocations
-            fetchWeather(for: location)
+    // Adds a location to the appropriate list, fetching weather data
+    func addLocation(_ location: LocationEntity, isCurrentLocation: Bool = false) {
+        if isCurrentLocation {
+            fetchWeather(for: location, isCurrentLocation: true)
         }
     }
     
-    func fetchWeather(for location: LocationEntity) {
+    // Fetches weather data for a given location
+    private func fetchWeather(for location: LocationEntity, isCurrentLocation: Bool = false) {
         weatherRepository.fetchWeather(forLocation: location) { [weak self] result in
             switch result {
             case .success(let updatedLocation):
-                self?.updateWeatherData(with: updatedLocation)
+                if isCurrentLocation {
+                    self?.currentLocationWeather = updatedLocation
+                }
             case .failure(let error):
-                print("Failed to fetch weather: \(error)")
+                print("Error fetching weather data: \(error)")
             }
         }
     }
-    
-    private func updateWeatherData(with updatedLocation: LocationEntity) {
-        if let index = locations.value.firstIndex(where: { $0.id == updatedLocation.id }) {
-            locations.value[index] = updatedLocation
-            locations.notifyListeners() // Notificar el cambio para actualizar la vista
-        } else {
-            locations.value.append(updatedLocation)
-        }
-    }
-    
-    func loadWeatherData() {
-        if let currentLocationWeather = locations.value.first(where: { $0.cityName == "Current Location" }) {
-            locations.value.insert(currentLocationWeather, at: 0)
-        } else {
-            addLocation(defaultLocation)
-        }
-    }
-    
+
     // MARK: - Location Handling
     
     private func requestLocation() {
@@ -88,12 +80,19 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.first else { return }
-        let locationEntity = LocationEntity(id: UUID(), cityName: "", latitude: location.coordinate.latitude, longitude: location.coordinate.longitude, registrationDate: Date())
-        addLocation(locationEntity) // Esto desencadena la obtención del clima y actualiza el nombre de la ciudad
+        let locationEntity = LocationEntity(
+            id: UUID(),
+            cityName: "",
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude,
+            registrationDate: Date()
+        )
+        addLocation(locationEntity, isCurrentLocation: true)
+        locationManager.stopUpdatingLocation()
     }
-    
+
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Failed to get user location: \(error)")
-        addLocation(defaultLocation)
     }
 }
+
