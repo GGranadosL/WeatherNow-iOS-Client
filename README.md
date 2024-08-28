@@ -1,5 +1,7 @@
 # WeatherNow iOS App
 
+![WeatherNow Logo](Resources/assets/appstore.png)
+
 **WeatherNow iOS App** is an iOS application developed for WeatherNow Inc., designed to provide accurate and accessible weather information to users. The app allows users to register locations of interest, view current weather conditions, and receive notifications about significant weather changes.
 
 ## Features
