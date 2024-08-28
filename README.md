@@ -16,6 +16,8 @@
 - **API Calls**: Implements API calls for fetching weather by location and by city name.
 - **Unit and Integration Tests**: Comprehensive testing ensures reliability and performance.
 
+  [Watch the demo](https://www.youtube.com/watch?v=example)
+
 ## Project Structure (Clean Architecture + MVVM)
 
 - **`App/`**: Contains the `AppDelegate`, `SceneDelegate`, and the main coordinator.
