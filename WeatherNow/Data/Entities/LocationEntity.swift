@@ -103,8 +103,8 @@ struct LocationEntity: Codable {
         humidity: 75,
         windSpeed: 5.0,
         pressure: 1013,
-        sunrise: Date(), // You can set specific times here
-        sunset: Date() // You can set specific times here
+        sunrise: Date(),
+        sunset: Date() 
     )
 }
 

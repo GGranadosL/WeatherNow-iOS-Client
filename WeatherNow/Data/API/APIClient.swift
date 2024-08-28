@@ -32,7 +32,6 @@ class APIClient: APIClientInterface, WeatherRepositoryInterface {
             
             do {
                 let weatherResponse = try JSONDecoder().decode(WeatherResponse.self, from: data)
-                print(weatherResponse)
                 var updatedLocation = location
                 updatedLocation.cityName = weatherResponse.name
                 updatedLocation.temperature = weatherResponse.main.temp
@@ -72,7 +71,6 @@ class APIClient: APIClientInterface, WeatherRepositoryInterface {
             
             do {
                 let weatherResponse = try JSONDecoder().decode(WeatherResponse.self, from: data)
-                print(weatherResponse)
                 let location = LocationEntity(
                     id: UUID(),
                     cityName: weatherResponse.name,
