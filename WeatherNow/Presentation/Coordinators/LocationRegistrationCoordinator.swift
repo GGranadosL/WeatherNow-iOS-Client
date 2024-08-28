@@ -9,24 +9,69 @@ import UIKit
 
 class LocationRegistrationCoordinator: Coordinator {
     
+    // MARK: - Properties
+    
     var childCoordinators: [Coordinator] = []
     var navigationController: UINavigationController
     private let locationRepository: LocationRepositoryInterface
+    private let weatherRepository: WeatherRepositoryInterface
+    private let notificationService: WeatherNotificationService
+    private weak var weatherStatusViewController: WeatherStatusViewController?
+    weak var parentCoordinator: Coordinator?
     
-    init(navigationController: UINavigationController, locationRepository: LocationRepositoryInterface) {
+    // MARK: - Initialization
+    
+    init(navigationController: UINavigationController,
+         locationRepository: LocationRepositoryInterface,
+         weatherRepository: WeatherRepositoryInterface,
+         weatherStatusViewController: WeatherStatusViewController,
+         notificationService: WeatherNotificationService) { 
         self.navigationController = navigationController
         self.locationRepository = locationRepository
+        self.weatherRepository = weatherRepository
+        self.weatherStatusViewController = weatherStatusViewController
+        self.notificationService = notificationService
     }
     
+    // MARK: - Coordinator Methods
+    
     func start() {
-        let viewModel = LocationRegistrationViewModel(locationRepository: locationRepository)
-        let viewController = LocationRegistrationViewController(viewModel: viewModel)
+        let locationRegistrationViewModel = LocationRegistrationViewModel(
+            locationRepository: locationRepository,
+            weatherRepository: weatherRepository,
+            notificationService: notificationService
+        )
         
-        navigationController.pushViewController(viewController, animated: true)
+        locationRegistrationViewModel.onLocationRegistered = { [weak self] in
+            self?.didRegisterLocation()
+        }
+        
+        let locationRegistrationViewController = LocationRegistrationViewController(viewModel: locationRegistrationViewModel)
+        locationRegistrationViewController.coordinator = self
+        locationRegistrationViewController.delegate = weatherStatusViewController
+        navigationController.present(locationRegistrationViewController, animated: true, completion: nil)
     }
     
     func didRegisterLocation() {
-        navigationController.popViewController(animated: true)
+        weatherStatusViewController?.viewModel.loadWeatherData()
+        weatherStatusViewController?.tableView.reloadData()
+        
+        navigationController.dismiss(animated: true, completion: nil)
+        
+        if let parent = parentCoordinator as? WeatherStatusCoordinator {
+            parent.didRegisterLocation()
+        }
+    }
+    
+    func didFinish() {
+        navigationController.dismiss(animated: true, completion: nil)
+        
+        if let parent = parentCoordinator as? WeatherStatusCoordinator {
+            parent.didRegisterLocation()
+        }
+    }
+    
+    func showLocationRegistration() {
+        start() // This calls start to begin the registration process
     }
 }
-

@@ -2,52 +2,72 @@
 //  WeatherStatusCoordinator.swift
 //  WeatherNow
 //
-//  Created by Gerardo  Granados Lopez on 23/08/24.
+//  Created by Gerardo Granados Lopez on 23/08/24.
 //
 
 import UIKit
 
 class WeatherStatusCoordinator: Coordinator {
-
+    
     // MARK: - Properties
-
-    var childCoordinators = [Coordinator]()
+    
+    var childCoordinators: [Coordinator] = []
     var navigationController: UINavigationController
-    private let weatherRepository: WeatherRepositoryInterface
+    
     private let locationRepository: LocationRepositoryInterface
+    private let weatherRepository: WeatherRepositoryInterface
+    private let notificationService: WeatherNotificationService
+    var weatherStatusViewController: WeatherStatusViewController?
 
     // MARK: - Initialization
-
+    
     init(navigationController: UINavigationController,
+         locationRepository: LocationRepositoryInterface,
          weatherRepository: WeatherRepositoryInterface,
-         locationRepository: LocationRepositoryInterface) {
+         notificationService: WeatherNotificationService) {
         self.navigationController = navigationController
-        self.weatherRepository = weatherRepository
         self.locationRepository = locationRepository
+        self.weatherRepository = weatherRepository
+        self.notificationService = notificationService
     }
-
-    // MARK: - Coordinator
-
+    
+    // MARK: - Coordinator Methods
+    
     func start() {
-        let viewModel = WeatherStatusViewModel(
-            locations: locationRepository.getLocations(),
-            weatherData: [],
+        let weatherStatusViewModel = WeatherStatusViewModel(
             weatherRepository: weatherRepository,
-            locationRepository: locationRepository
+            locationRepository: locationRepository,
+            notificationService: notificationService  
         )
-        let viewController = WeatherStatusViewController(viewModel: viewModel)
-        viewController.title = "Weather Status"
-        viewController.coordinator = self
-        navigationController.setViewControllers([viewController], animated: false)
+        let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel, notificationService: notificationService)
+        weatherStatusViewController.coordinator = self
+        self.weatherStatusViewController = weatherStatusViewController
+        navigationController.pushViewController(weatherStatusViewController, animated: true)
     }
-
+    
     func showLocationRegistration() {
+        guard let weatherStatusViewController = navigationController.topViewController as? WeatherStatusViewController else {
+            fatalError("WeatherStatusViewController is not the top view controller")
+        }
+        
         let locationRegistrationCoordinator = LocationRegistrationCoordinator(
             navigationController: navigationController,
-            locationRepository: locationRepository
+            locationRepository: locationRepository,
+            weatherRepository: weatherRepository,
+            weatherStatusViewController: weatherStatusViewController, 
+            notificationService: notificationService
         )
-        childCoordinators.append(locationRegistrationCoordinator)
+        locationRegistrationCoordinator.parentCoordinator = self
+        addChildCoordinator(locationRegistrationCoordinator)
         locationRegistrationCoordinator.start()
     }
-}
 
+    func didRegisterLocation() {
+        weatherStatusViewController?.reloadWeatherData()
+    }
+
+    func childDidFinish(_ child: Coordinator?) {
+        guard let child = child else { return }
+        childCoordinators.removeAll { $0 === child }
+    }
+}

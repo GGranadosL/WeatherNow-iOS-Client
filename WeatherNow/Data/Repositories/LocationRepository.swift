@@ -8,48 +8,73 @@
 import Foundation
 
 class LocationRepository: LocationRepositoryInterface {
-    private var locations: [Location] = []
     
-    func addLocation(_ location: Location) throws {
-        // Agrega una ubicación al array
-        locations.append(location)
-        try saveLocations()
+    private let locationsKey = "weather_locations"
+    private var locations: [LocationEntity] = []
+    
+    var userDefaults: UserDefaults
+    
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
+        loadLocations()
     }
     
-    func getLocation(byId id: String) -> Location? {
-        return locations.first { $0.id == id }
-    }
-    
-    func getAllLocations() -> [Location] {
-        return locations
-    }
-    
-    func deleteLocation(byId id: String) throws {
-        if let index = locations.firstIndex(where: { $0.id == id }) {
-            locations.remove(at: index)
-            try saveLocations()
+    // Carga las ubicaciones almacenadas desde UserDefaults
+    private func loadLocations() {
+        if let data = userDefaults.data(forKey: locationsKey),
+           let decodedLocations = try? JSONDecoder().decode([LocationEntity].self, from: data) {
+            locations = decodedLocations
         }
     }
     
-    func fetchLocations() -> [Location] {
-        // Implementación para obtener ubicaciones
-        return []
+    // Guarda las ubicaciones en UserDefaults
+    private func saveLocations() {
+        if let encodedData = try? JSONEncoder().encode(locations) {
+            userDefaults.set(encodedData, forKey: locationsKey)
+        }
     }
     
-    func getLocations() -> [Location] {
+    // Método para agregar una nueva ubicación
+    func addLocation(_ location: LocationEntity) {
+        locations.append(location)
+        clearInvalidLocations()
+        saveLocations()
+    }
+    
+    // Método para obtener todas las ubicaciones
+    func getLocations() -> [LocationEntity] {
         return locations
     }
-
-    func saveLocation(_ location: Location) throws {
-        locations.append(location)
+    
+    // Implementación del método deleteLocation(at:) para eliminar una ubicación por índice
+    func deleteLocation(at index: Int) {
+        guard index >= 0 && index < locations.count else { return }
+        locations.remove(at: index)
+        saveLocations() // Actualiza UserDefaults después de eliminar
     }
     
-    func saveLocations() throws {
-        // Guarda las ubicaciones en almacenamiento persistente (ej. UserDefaults o Core Data)
+    // Implementación opcional para eliminar por entidad de ubicación en lugar de por índice
+    func deleteLocation(_ location: LocationEntity) {
+        locations.removeAll { $0.id == location.id }
+        saveLocations()
     }
     
-    func loadLocations() throws {
-        // Carga las ubicaciones desde almacenamiento persistente
+    // Delete invalid data
+    internal func clearInvalidLocations() {
+        locations = locations.filter { !$0.cityName.isEmpty }
+        saveLocations()
+    }
+    
+    // Clears all stored locations - useful for testing.
+    func clearAllLocations() {
+        locations.removeAll()
+        saveLocations()
     }
 }
+
+    
+
+
+
+
 

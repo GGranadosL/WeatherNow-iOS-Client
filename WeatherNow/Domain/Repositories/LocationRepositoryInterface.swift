@@ -7,18 +7,18 @@
 
 import Foundation
 
+// Protocol for managing location data operations.
 protocol LocationRepositoryInterface {
-    // CRUD Operations
-    func addLocation(_ location: Location) throws
-    func getLocation(byId id: String) -> Location?
-    func getAllLocations() -> [Location]
-    func deleteLocation(byId id: String) throws
-    func saveLocation(_ location: Location) throws
-    func fetchLocations() -> [Location]
-    func getLocations() -> [Location]
-
-    // Persistence Operations
-    func saveLocations() throws
-    func loadLocations() throws
+    // Adds a new location to the repository.
+    func addLocation(_ location: LocationEntity)
+    
+    // Delete location in repository.
+    func deleteLocation(at index: Int)
+    
+    // Retrieves all stored locations.
+    func getLocations() -> [LocationEntity]
+    
+    // Delete invalid data
+    func clearInvalidLocations()
 }
 

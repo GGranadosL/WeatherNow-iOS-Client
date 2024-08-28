@@ -7,43 +7,66 @@
 
 import Foundation
 
-class LocationRegistrationViewModel {
+/// ViewModel for managing the location registration process.
+class LocationRegistrationViewModel: NSObject {
     
     // MARK: - Properties
     
     private let locationRepository: LocationRepositoryInterface
-    var onSaveSuccess: (() -> Void)?
-    var onSaveError: ((Error) -> Void)?
+    private let weatherRepository: WeatherRepositoryInterface
+    private let notificationService: WeatherNotificationService
+    
+    // Callback to notify when location registration is successful
+    var onLocationRegistered: (() -> Void)?
+    var onLocationFail: (() -> Void)?
     
     // MARK: - Initialization
     
-    init(locationRepository: LocationRepositoryInterface) {
+    init(locationRepository: LocationRepositoryInterface, weatherRepository: WeatherRepositoryInterface, notificationService: WeatherNotificationService) {
         self.locationRepository = locationRepository
+        self.weatherRepository = weatherRepository
+        self.notificationService = notificationService
+        super.init()
     }
     
     // MARK: - Public Methods
     
-    func generateNewId() -> String {
-        return UUID().uuidString
+    /// Registers a location using latitude and longitude
+    func registerLocation(location: LocationEntity) {
+        if location.latitude != 0.0 && location.longitude != 0.0 {
+            weatherRepository.fetchWeather(forLocation: location) { [weak self] result in
+                switch result {
+                case .success(let updatedLocation):
+                    self?.locationRepository.addLocation(updatedLocation)
+                    self?.onLocationRegistered?()
+                    
+                    // Check for significant weather changes and trigger a notification if necessary
+                    self?.notificationService.checkForSignificantWeatherChange(previousWeather: location, currentWeather: updatedLocation)
+                    
+                case .failure(let error):
+                    self?.onLocationFail?()
+                    print("Failed to fetch weather data: \(error)")
+                }
+            }
+        } else {
+            self.onLocationFail?()
+            print("Attempted to register a location with invalid coordinates")
+        }
     }
-    
-    func currentDate() -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .none
-        return dateFormatter.string(from: Date())
-    }
-    
-    func saveLocation(cityName: String, latitude: String, longitude: String) {
-        let id = generateNewId()
-        let registrationDate = currentDate()
-        let location = Location(id: id, cityName: cityName, latitude: latitude, longitude: longitude, registrationDate: registrationDate)
-        
-        do {
-            try locationRepository.saveLocation(location)
-            onSaveSuccess?()
-        } catch {
-            onSaveError?(error)
+
+
+    /// Registers a location using a city name
+    func registerLocation(cityName: String) {
+        // API call to fetch location data based on city name
+        weatherRepository.fetchWeather(forCity: cityName) { [weak self] result in
+            switch result {
+            case .success(let location):
+                self?.locationRepository.addLocation(location)
+                self?.onLocationRegistered?() // Notify that the location has been registered
+            case .failure(let error):
+                self?.onLocationFail?()
+                print("Failed to register location by city name: \(error)")
+            }
         }
     }
 }
