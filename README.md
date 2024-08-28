@@ -16,7 +16,7 @@
 - **API Calls**: Implements API calls for fetching weather by location and by city name.
 - **Unit and Integration Tests**: Comprehensive testing ensures reliability and performance.
 
-## Project Structure
+## Project Structure (Clean Architecture + MVVM)
 
 - **`App/`**: Contains the `AppDelegate`, `SceneDelegate`, and the main coordinator.
 - **`Domain/`**: Defines models, repository interfaces, and use cases.
@@ -40,10 +40,10 @@
 
 ## Requirements
 
-- **Swift** y **UIKit**
-- **Core Location** y **Calendar API** (no external dependencies)
+- **Swift** and **UIKit**
+- **Core Location** and **Calendar API** (no external dependencies)
 
-## Contacto
+## Contact
 
 For more information, you can contact Gerardo Granados at gerardo.granados@outlook.com.
 
