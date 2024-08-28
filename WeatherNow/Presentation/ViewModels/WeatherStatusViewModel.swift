@@ -7,6 +7,7 @@
 // ViewModel that manages weather data and user locations, integrating with a local notification service.
 import Foundation
 import CoreLocation
+import EventKit
 
 class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
     
@@ -14,7 +15,7 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
     
     // Bindable array of LocationEntity objects to track current and user-added locations
     let locations: Bindable<[LocationEntity]> = Bindable([])
-    
+    private let calendarService: CalendarService
     private let locationManager = CLLocationManager()
     let weatherRepository: WeatherRepositoryInterface
     let locationRepository: LocationRepositoryInterface
@@ -41,7 +42,8 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
     
     // MARK: - Initialization
     
-    init(weatherRepository: WeatherRepositoryInterface, locationRepository: LocationRepositoryInterface, notificationService: WeatherNotificationService) {
+    init(calendarService: CalendarService, weatherRepository: WeatherRepositoryInterface, locationRepository: LocationRepositoryInterface, notificationService: WeatherNotificationService) {
+        self.calendarService = calendarService
         self.weatherRepository = weatherRepository
         self.locationRepository = locationRepository
         self.notificationService = notificationService
@@ -144,8 +146,39 @@ class WeatherStatusViewModel: NSObject, CLLocationManagerDelegate {
         }
     }
     
+    func addWeatherReminder(title: String, date: Date) {
+        let endDate = Calendar.current.date(byAdding: .hour, value: 1, to: date) ?? date
+        
+        requestCalendarAccess { [weak self] granted in
+            guard let self = self else { return }
+            
+            if granted {
+                self.calendarService.addWeatherReminder(title: title, startDate: date, endDate: endDate) { result in
+                    switch result {
+                    case .success(let event):
+                        print("Reminder added: \(String(describing: event.title))")
+                    case .failure(let error):
+                        print("Failed to add reminder: \(error.localizedDescription)")
+                    }
+                }
+            } else {
+                print("Calendar access not granted")
+            }
+        }
+    }
     
-    
+    func requestCalendarAccess(completion: @escaping (Bool) -> Void) {
+        let eventStore = EKEventStore()
+        eventStore.requestFullAccessToEvents { granted, error in
+            if granted {
+                print("Access to calendar granted.")
+            } else {
+                print("Access to calendar denied: \(error?.localizedDescription ?? "Unknown error")")
+            }
+            completion(granted)
+        }
+    }
+
     // MARK: - Location Handling
     
     private func requestLocation() {

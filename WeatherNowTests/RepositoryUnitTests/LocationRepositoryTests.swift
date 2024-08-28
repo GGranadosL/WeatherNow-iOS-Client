@@ -24,13 +24,14 @@ final class LocationRepositoryTests: XCTestCase {
         // Inject the test UserDefaults into the repository
         locationRepository = LocationRepository(userDefaults: userDefaults)
         
-        locationRepository = LocationRepository()
+        // Limpia todas las ubicaciones antes de cada prueba
         locationRepository.clearAllLocations()
     }
 
     override func tearDown() {
         locationRepository = nil
         super.tearDown()
+        userDefaults?.removePersistentDomain(forName: "TestSuite")
     }
 
     func testAddLocation() {

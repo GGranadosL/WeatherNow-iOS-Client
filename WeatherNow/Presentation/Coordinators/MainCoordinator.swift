@@ -14,6 +14,7 @@ class MainCoordinator: Coordinator {
     private let locationRepository: LocationRepositoryInterface
     private let weatherRepository: WeatherRepositoryInterface
     private let notificationService: WeatherNotificationService
+    private let calendarService: CalendarService
     var weatherStatusViewModel: WeatherStatusViewModel?
     var weatherStatusViewController: WeatherStatusViewController?
     
@@ -22,11 +23,13 @@ class MainCoordinator: Coordinator {
     init(navigationController: UINavigationController,
          locationRepository: LocationRepositoryInterface,
          weatherRepository: WeatherRepositoryInterface,
-         notificationService: WeatherNotificationService) {
+         notificationService: WeatherNotificationService,
+         calendarService: CalendarService) {
         self.navigationController = navigationController
         self.locationRepository = locationRepository
         self.weatherRepository = weatherRepository
         self.notificationService = notificationService
+        self.calendarService = calendarService
     }
     
     // MARK: - Coordinator
@@ -36,8 +39,8 @@ class MainCoordinator: Coordinator {
     }
     
     private func showWeatherStatus() {
-        let weatherStatusViewModel = WeatherStatusViewModel(weatherRepository: weatherRepository, locationRepository: locationRepository, notificationService: notificationService)
-        let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel, notificationService: notificationService)
+        let weatherStatusViewModel = WeatherStatusViewModel(calendarService: calendarService, weatherRepository: weatherRepository, locationRepository: locationRepository, notificationService: notificationService)
+        let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel, notificationService: notificationService, calendarService: calendarService)
         weatherStatusViewController.coordinator = self
         self.weatherStatusViewController = weatherStatusViewController // Save the reference
         navigationController.setViewControllers([weatherStatusViewController], animated: false)

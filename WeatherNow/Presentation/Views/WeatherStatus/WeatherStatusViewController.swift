@@ -14,12 +14,16 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     
     let viewModel: WeatherStatusViewModel
     let notificationService: WeatherNotificationService
+    let calendarService: CalendarService
+    
     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
+    
     private let refreshControl = UIRefreshControl()
+    
     private let registerButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Add Location", for: .normal)
@@ -29,36 +33,49 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+    
     private let activityIndicator: UIActivityIndicatorView = {
         let activityIndicator = UIActivityIndicatorView(style: .large)
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator.hidesWhenStopped = true
         return activityIndicator
     }()
+    
+    private let addReminderButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Add Reminder", for: .normal)
+        button.backgroundColor = UIColor.systemBlue
+        button.tintColor = .white
+        button.layer.cornerRadius = 25
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     private let locationManager = CLLocationManager()
     weak var coordinator: Coordinator?
     private var debounceTimer: Timer?
-
+    
     // MARK: - Initialization
     
-    init(viewModel: WeatherStatusViewModel, notificationService: WeatherNotificationService) {
+    init(viewModel: WeatherStatusViewModel, notificationService: WeatherNotificationService, calendarService: CalendarService) {
         self.viewModel = viewModel
         self.notificationService = notificationService
+        self.calendarService = calendarService  // Initialize CalendarService
         super.init(nibName: nil, bundle: nil)
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        locationManager.delegate = self
         setupView()
         bindViewModel()
         activityIndicator.startAnimating()
-        requestLocationPermission()
         setupNavigationBarLogo()
         viewModel.loadWeatherData()
     }
@@ -90,12 +107,13 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         view.addSubview(tableView)
         view.addSubview(registerButton)
         view.addSubview(activityIndicator)
+        view.addSubview(addReminderButton)  // Add the reminder button to the view
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            tableView.bottomAnchor.constraint(equalTo: registerButton.topAnchor, constant: -10),
             
             registerButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             registerButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
@@ -103,10 +121,26 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             registerButton.heightAnchor.constraint(equalToConstant: 50),
             
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
+            addReminderButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),  // New constraints for the add reminder button
+            addReminderButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            addReminderButton.widthAnchor.constraint(equalToConstant: 150),
+            addReminderButton.heightAnchor.constraint(equalToConstant: 50)
         ])
         
         registerButton.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
+        addReminderButton.addTarget(self, action: #selector(addReminderButtonTapped), for: .touchUpInside)  // Add action for the reminder button
+    }
+    
+    private func requestLocationPermission() {
+        // Directly request authorization without checking the status beforehand
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.requestWhenInUseAuthorization()
+        } else {
+            print("Location services are not enabled")
+            activityIndicator.stopAnimating()
+        }
     }
     
     func reloadWeatherData() {
@@ -125,12 +159,12 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         imageView.contentMode = .scaleAspectFit
         navigationItem.titleView = imageView
     }
-
+    
     // Refresh data when pulling down the table view
     @objc private func refreshData() {
         reloadWeatherData()
     }
-
+    
     // Binds the ViewModel to update the view when the data changes
     private func bindViewModel() {
         viewModel.locations.bind { [weak self] _ in
@@ -144,12 +178,6 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             }
         }
     }
-
-    
-    private func requestLocationPermission() {
-        locationManager.delegate = self
-        locationManager.requestWhenInUseAuthorization()
-    }
     
     private func startLocationUpdates() {
         guard CLLocationManager.locationServicesEnabled() else {
@@ -157,10 +185,13 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             return
         }
         
+        // Start updating the location if we have the proper authorization
         locationManager.startUpdatingLocation()
-        activityIndicator.startAnimating()
+        DispatchQueue.main.async {
+            self.activityIndicator.startAnimating()
+        }
     }
-
+    
     @objc private func registerButtonTapped() {
         guard let navigationController = navigationController else {
             return
@@ -176,24 +207,49 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         
         locationRegistrationCoordinator.start()
     }
-
+    
+    // MARK: - New Calendar Reminder Button Action
+    
+    @objc private func addReminderButtonTapped() {
+        // Define the title and date for the reminder
+        let title = "Check the weather"
+        let date = Date() // Use the current date; modify as needed
+        
+        calendarService.requestFullCalendarAccess { [weak self] granted, error in
+            guard granted else {
+                print("Calendar access not granted: \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+            
+            let endDate = Calendar.current.date(byAdding: .hour, value: 1, to: date) ?? date
+            self?.calendarService.addWeatherReminder(title: title, startDate: date, endDate: endDate) { result in
+                switch result {
+                case .success(let event):
+                    print("Reminder added: \(String(describing: event.title))")
+                case .failure(let error):
+                    print("Failed to add reminder: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
     
     // MARK: - CLLocationManagerDelegate
     
-    // Handles location authorization changes
+    // Handle the user's response in the delegate method
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            DispatchQueue.main.async { [weak self] in
-                self?.startLocationUpdates()
-            }
-        case .denied, .restricted:
+        case .notDetermined:
+            requestLocationPermission()
+            break
+        case .restricted, .denied:
             print("Location access denied/restricted.")
             DispatchQueue.main.async { [weak self] in
                 self?.activityIndicator.stopAnimating()
             }
-        case .notDetermined:
-            break
+        case .authorizedWhenInUse, .authorizedAlways:
+            DispatchQueue.main.async { [weak self] in
+                self?.startLocationUpdates()
+            }
         @unknown default:
             break
         }
@@ -202,13 +258,26 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     // Handles location updates
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let currentLocation = locations.first else { return }
-        let locationEntity = LocationEntity(
-            id: UUID(),
-            cityName: "",
-            latitude: currentLocation.coordinate.latitude,
-            longitude: currentLocation.coordinate.longitude
-        )
-        locationManager.stopUpdatingLocation()
+        print("Location updated: \(currentLocation)")
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            let locationEntity = LocationEntity(
+                id: UUID(),
+                cityName: "",
+                latitude: currentLocation.coordinate.latitude,
+                longitude: currentLocation.coordinate.longitude
+            )
+            self?.processLocation(locationEntity)
+        }
+    }
+    
+    private func processLocation(_ locationEntity: LocationEntity) {
+        
+        viewModel.addLocation(locationEntity, isCurrentLocation: true)
+        print("processLocation: \(locationEntity)")
+        DispatchQueue.main.async { [weak self] in
+            self?.activityIndicator.stopAnimating()
+            self?.tableView.reloadData()
+        }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -222,7 +291,7 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     func numberOfSections(in tableView: UITableView) -> Int {
         return viewModel.hasCurrentLocationWeather || !viewModel.userAddedLocations.isEmpty ? 2 : 1
     }
-
+    
     // Defines the number of rows in each section
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if section == 0 {
@@ -231,7 +300,7 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             return viewModel.userAddedLocations.count
         }
     }
-
+    
     // Defines the titles for the sections in the table view
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if section == 0 && viewModel.hasCurrentLocationWeather {
@@ -241,7 +310,7 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         }
         return nil
     }
-
+    
     // Configures each cell in the table view
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "WeatherStatusCell", for: indexPath) as! WeatherStatusTableViewCell
@@ -253,12 +322,12 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             // Invertir el orden de las celdas
             location = viewModel.userAddedLocations.reversed()[indexPath.row]
         }
-
+        
         cell.selectionStyle = .none
         cell.configure(with: location.toDomainLocation())
         return cell
     }
-
+    
     // Handles swipe to delete functionality
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete && indexPath.section != 0 {
@@ -271,8 +340,8 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             }, completion: nil)
         }
     }
-
-
+    
+    
     // Handles cell selection in the table view
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let location: Location
@@ -281,7 +350,7 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         } else {
             location = viewModel.userAddedLocations.reversed()[indexPath.row].toDomainLocation()
         }
-
+        
         let detailViewController = WeatherDetailViewController(location: location)
         navigationController?.pushViewController(detailViewController, animated: true)
     }

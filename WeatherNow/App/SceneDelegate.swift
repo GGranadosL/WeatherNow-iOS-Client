@@ -19,11 +19,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         let navigationController = UINavigationController()
         
-        let locationRepository = LocationRepository() // Initialize your LocationRepository
-        let weatherRepository = APIClient() // Initialize your WeatherRepository
+        let locationRepository = LocationRepository()
+        let weatherRepository = APIClient()
         
         // Initialize the NotificationService and WeatherNotificationService
-        let notificationService = NotificationService() // Your implementation of NotificationService
+        let notificationService = NotificationService()
+        let calendarService = CalendarService()
         let weatherNotificationService = WeatherNotificationService(notificationService: notificationService)
         
         // Pass the notificationService to MainCoordinator
@@ -31,7 +32,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             navigationController: navigationController,
             locationRepository: locationRepository,
             weatherRepository: weatherRepository,
-            notificationService: weatherNotificationService
+            notificationService: weatherNotificationService, 
+            calendarService: calendarService
         )
         
         self.mainCoordinator = mainCoordinator

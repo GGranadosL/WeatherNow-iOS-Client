@@ -1,50 +1,49 @@
 # WeatherNow iOS App
 
-**WeatherNow iOS App** es una aplicación para iOS desarrollada para WeatherNow Inc., diseñada para proporcionar información meteorológica precisa y accesible a los usuarios. La aplicación permite a los usuarios registrar ubicaciones de interés, visualizar el estado actual del clima y recibir notificaciones sobre cambios significativos en el clima.
+**WeatherNow iOS App** is an iOS application developed for WeatherNow Inc., designed to provide accurate and accessible weather information to users. The app allows users to register locations of interest, view current weather conditions, and receive notifications about significant weather changes.
 
-## Características
+## Features
 
-- **Registro de Ubicaciones**: Agrega ubicaciones con detalles como nombre de la ciudad, latitud, longitud y fecha de registro.
-- **Estado del Clima**: Muestra el estado actual del clima para cada ubicación registrada, incluyendo temperatura, descripción del clima e iconos representativos.
-- **Notificaciones Locales**: Envía recordatorios a los usuarios para revisar el clima cuando se detectan cambios significativos.
-- **Integración con API Meteorológica**: Utiliza una API pública (como OpenWeatherMap) para obtener datos del clima.
-- **Uso de Core Location**: Obtiene la ubicación actual del usuario para mostrar el clima en tiempo real.
-- **Persistencia Local**: Guarda ubicaciones localmente para su uso offline.
-- **Interfaz Moderna y Minimalista**: Proporciona una experiencia de usuario limpia y eficiente.
+- **Location Registration**: Add locations with details such as city name, latitude, longitude, and registration date.
+- **Weather Status**: Display the current weather status for each registered location, including temperature, weather description, and representative icons.
+- **Local Notifications**: Send reminders to users to check the weather when significant changes are detected.
+- **Weather API Integration**: Utilizes a public API (like OpenWeatherMap) to fetch weather data.
+- **Core Location Usage**: Retrieves the user's current location to display real-time weather.
+- **Local Persistence**: Saves locations locally for offline use.
+- **Modern and Minimalist Interface**: Provides a clean and efficient user experience.
+- **Keychain Integration**: Securely stores sensitive user data using Keychain.
+- **Calendar Integration**: Allows users to add reminders to their device's calendar to check the weather.
+- **API Calls**: Implements API calls for fetching weather by location and by city name.
+- **Unit and Integration Tests**: Comprehensive testing ensures reliability and performance.
 
-## Estructura del Proyecto
+## Project Structure
 
-- **`App/`**: Contiene el archivo `AppDelegate`, `SceneDelegate` y el coordinador principal.
-- **`Domain/`**: Define los modelos, interfaces de repositorios y casos de uso.
-- **`Data/`**: Implementaciones concretas de repositorios y manejo de persistencia.
-- **`Presentation/`**: Contiene las vistas, controladores de vista y vistas modelo.
-- **`Resources/`**: Recursos como imágenes y el storyboard de lanzamiento.
-- **`Tests/`**: Pruebas unitarias y de integración.
+- **`App/`**: Contains the `AppDelegate`, `SceneDelegate`, and the main coordinator.
+- **`Domain/`**: Defines models, repository interfaces, and use cases.
+- **`Data/`**: Concrete implementations of repositories and data persistence.
+- **`Presentation/`**: Contains views, view controllers, and view models.
+- **`Resources/`**: Resources like images and the launch storyboard.
+- **`Tests/`**: Unit tests and integration tests to validate functionality.
 
-## Instalación
+## Installation
 
-1. **Clona el repositorio**:
+1. **Clone the repository**:
    ```sh
-   git clone https://github.com/tu-usuario/WeatherNow-iOS-App.git
-   ```
-
-2. **Abre el proyecto en Xcode**:
+   git clone https://github.com/your-username/WeatherNow-iOS-App.git
+    ```
+2. **Open the project in Xcode:**:
    ```sh
    open WeatherNow-iOS-App.xcworkspace
    ```
 
-3. **Ejecuta el proyecto en un simulador o dispositivo**.
+3. **Run the project on a simulator or device.**.
 
-## Requisitos
+## Requirements
 
 - **Swift** y **UIKit**
-- **Core Location** y **Calendar API** (sin dependencias externas)
-
-## Licencia
-
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo `LICENSE` para más detalles.
+- **Core Location** y **Calendar API** (no external dependencies)
 
 ## Contacto
 
-Para más información, puedes contactar a Gerardo Granados en gerardo.granados@outlook.com.
+For more information, you can contact Gerardo Granados at gerardo.granados@outlook.com.
 

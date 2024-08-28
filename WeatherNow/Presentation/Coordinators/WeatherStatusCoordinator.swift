@@ -17,6 +17,7 @@ class WeatherStatusCoordinator: Coordinator {
     private let locationRepository: LocationRepositoryInterface
     private let weatherRepository: WeatherRepositoryInterface
     private let notificationService: WeatherNotificationService
+    private let calendarService: CalendarService
     var weatherStatusViewController: WeatherStatusViewController?
 
     // MARK: - Initialization
@@ -24,22 +25,26 @@ class WeatherStatusCoordinator: Coordinator {
     init(navigationController: UINavigationController,
          locationRepository: LocationRepositoryInterface,
          weatherRepository: WeatherRepositoryInterface,
-         notificationService: WeatherNotificationService) {
+         notificationService: WeatherNotificationService,
+         calendarService: CalendarService) {
         self.navigationController = navigationController
         self.locationRepository = locationRepository
         self.weatherRepository = weatherRepository
         self.notificationService = notificationService
+        self.calendarService = calendarService
+        
     }
     
     // MARK: - Coordinator Methods
     
     func start() {
         let weatherStatusViewModel = WeatherStatusViewModel(
+            calendarService: calendarService,
             weatherRepository: weatherRepository,
             locationRepository: locationRepository,
             notificationService: notificationService  
         )
-        let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel, notificationService: notificationService)
+        let weatherStatusViewController = WeatherStatusViewController(viewModel: weatherStatusViewModel, notificationService: notificationService, calendarService: calendarService)
         weatherStatusViewController.coordinator = self
         self.weatherStatusViewController = weatherStatusViewController
         navigationController.pushViewController(weatherStatusViewController, animated: true)
