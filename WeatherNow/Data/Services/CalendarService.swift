@@ -9,7 +9,7 @@ import EventKit
 import EventKitUI
 
 class CalendarService {
-    private let eventStore = EKEventStore()
+    let eventStore = EKEventStore()
 
     // Request full access to the user's calendar
     func requestFullCalendarAccess(completion: @escaping (Bool, Error?) -> Void) {

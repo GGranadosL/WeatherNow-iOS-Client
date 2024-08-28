@@ -7,6 +7,7 @@
 
 import UIKit
 import CoreLocation
+import EventKitUI
 
 class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, CLLocationManagerDelegate, LocationRegistrationViewControllerDelegate {
     
@@ -211,24 +212,35 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     // MARK: - New Calendar Reminder Button Action
     
     @objc private func addReminderButtonTapped() {
-        // Define the title and date for the reminder
-        let title = "Check the weather"
-        let date = Date() // Use the current date; modify as needed
-        
+        let date = Date()
+        let endDate = Calendar.current.date(byAdding: .hour, value: 1, to: date) ?? date
+
+        // Request access to the calendar
         calendarService.requestFullCalendarAccess { [weak self] granted, error in
             guard granted else {
                 print("Calendar access not granted: \(error?.localizedDescription ?? "Unknown error")")
                 return
             }
-            
-            let endDate = Calendar.current.date(byAdding: .hour, value: 1, to: date) ?? date
-            self?.calendarService.addWeatherReminder(title: title, startDate: date, endDate: endDate) { result in
-                switch result {
-                case .success(let event):
-                    print("Reminder added: \(String(describing: event.title))")
-                case .failure(let error):
-                    print("Failed to add reminder: \(error.localizedDescription)")
-                }
+
+            guard let eventStore = self?.calendarService.eventStore else {
+                print("Failed to access the event store")
+                return
+            }
+
+            // Create a new event
+            let event = EKEvent(eventStore: eventStore)
+            event.title = "Check the weather"
+            event.startDate = date
+            event.endDate = endDate
+            event.calendar = eventStore.defaultCalendarForNewEvents
+
+            // Present the event editing UI
+            DispatchQueue.main.async {
+                let eventEditVC = EKEventEditViewController()
+                eventEditVC.event = event
+                eventEditVC.eventStore = eventStore
+                eventEditVC.editViewDelegate = self
+                self?.present(eventEditVC, animated: true, completion: nil)
             }
         }
     }
@@ -355,3 +367,20 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         navigationController?.pushViewController(detailViewController, animated: true)
     }
 }
+
+extension WeatherStatusViewController: EKEventEditViewDelegate {
+    func eventEditViewController(_ controller: EKEventEditViewController, didCompleteWith action: EKEventEditViewAction) {
+        switch action {
+        case .canceled:
+            print("Event creation canceled")
+        case .saved:
+            print("Event saved successfully")
+        case .deleted:
+            print("Event deleted")
+        @unknown default:
+            print("Unknown action")
+        }
+        controller.dismiss(animated: true, completion: nil)
+    }
+}
+
