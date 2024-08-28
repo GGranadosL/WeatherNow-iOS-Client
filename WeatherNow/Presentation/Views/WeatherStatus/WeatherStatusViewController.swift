@@ -218,12 +218,16 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         // Request access to the calendar
         calendarService.requestFullCalendarAccess { [weak self] granted, error in
             guard granted else {
-                print("Calendar access not granted: \(error?.localizedDescription ?? "Unknown error")")
+                DispatchQueue.main.async {
+                    self?.showPermissionAlert()
+                }
                 return
             }
 
             guard let eventStore = self?.calendarService.eventStore else {
-                print("Failed to access the event store")
+                DispatchQueue.main.async {
+                    self?.showPermissionAlert()
+                }
                 return
             }
 
@@ -243,6 +247,27 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
                 self?.present(eventEditVC, animated: true, completion: nil)
             }
         }
+    }
+
+    private func showPermissionAlert() {
+        let alertController = UIAlertController(
+            title: "Calendar Access Required",
+            message: "Calendar access is required to add reminders. Please go to Settings -> Privacy -> Calendar to enable access.",
+            preferredStyle: .alert
+        )
+        
+        let settingsAction = UIAlertAction(title: "Settings", style: .default) { _ in
+            if let appSettings = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(appSettings)
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alertController.addAction(settingsAction)
+        alertController.addAction(cancelAction)
+        
+        present(alertController, animated: true, completion: nil)
     }
     
     // MARK: - CLLocationManagerDelegate
