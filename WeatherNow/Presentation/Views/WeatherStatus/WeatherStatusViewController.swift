@@ -17,44 +17,12 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     let notificationService: WeatherNotificationService
     let calendarService: CalendarService
     
-    let tableView: UITableView = {
-        let tableView = UITableView()
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        return tableView
-    }()
-    
-    private let refreshControl = UIRefreshControl()
-    
-    private let registerButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Add Location", for: .normal)
-        button.backgroundColor = UIColor(red: 238/255, green: 80/255, blue: 50/255, alpha: 1.0)
-        button.tintColor = .white
-        button.layer.cornerRadius = 25
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
-    private let activityIndicator: UIActivityIndicatorView = {
-        let activityIndicator = UIActivityIndicatorView(style: .large)
-        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
-        activityIndicator.hidesWhenStopped = true
-        return activityIndicator
-    }()
-    
-    private let addReminderButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Add Reminder", for: .normal)
-        button.backgroundColor = UIColor.systemBlue
-        button.tintColor = .white
-        button.layer.cornerRadius = 25
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
     private let locationManager = CLLocationManager()
     weak var coordinator: Coordinator?
     private var debounceTimer: Timer?
+    
+    // Use the separated view
+    let weatherStatusView = WeatherStatusView()
     
     // MARK: - Initialization
     
@@ -71,12 +39,15 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     
     // MARK: - Lifecycle
     
+    override func loadView() {
+        view = weatherStatusView
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        locationManager.delegate = self
-        setupView()
+        setupViewController()
         bindViewModel()
-        activityIndicator.startAnimating()
+        
         setupNavigationBarLogo()
         viewModel.loadWeatherData()
     }
@@ -91,47 +62,22 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
     }
     
     // MARK: - Setup
-    
-    // Sets up the view components and layout
-    private func setupView() {
+    private func setupViewController() {
         view.backgroundColor = .white
         title = "Weather Status"
+    
+        weatherStatusView.tableView.delegate = self
+        weatherStatusView.tableView.dataSource = self
         
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.register(WeatherStatusTableViewCell.self, forCellReuseIdentifier: "WeatherStatusCell")
+        locationManager.delegate = self
         
         // Add refresh control for pull-to-refresh
-        tableView.refreshControl = refreshControl
-        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        weatherStatusView.refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
         
-        view.addSubview(tableView)
-        view.addSubview(registerButton)
-        view.addSubview(activityIndicator)
-        view.addSubview(addReminderButton)  // Add the reminder button to the view
+        weatherStatusView.registerButton.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
+        weatherStatusView.addReminderButton.addTarget(self, action: #selector(addReminderButtonTapped), for: .touchUpInside)  
         
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: registerButton.topAnchor, constant: -10),
-            
-            registerButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            registerButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            registerButton.widthAnchor.constraint(equalToConstant: 150),
-            registerButton.heightAnchor.constraint(equalToConstant: 50),
-            
-            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            
-            addReminderButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),  // New constraints for the add reminder button
-            addReminderButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            addReminderButton.widthAnchor.constraint(equalToConstant: 150),
-            addReminderButton.heightAnchor.constraint(equalToConstant: 50)
-        ])
-        
-        registerButton.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
-        addReminderButton.addTarget(self, action: #selector(addReminderButtonTapped), for: .touchUpInside)  // Add action for the reminder button
+        weatherStatusView.activityIndicator.startAnimating()
     }
     
     private func requestLocationPermission() {
@@ -140,14 +86,14 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             locationManager.requestWhenInUseAuthorization()
         } else {
             print("Location services are not enabled")
-            activityIndicator.stopAnimating()
+            weatherStatusView.activityIndicator.stopAnimating()
         }
     }
     
     func reloadWeatherData() {
         viewModel.loadWeatherData()
-        tableView.reloadData() // This reloads the entire table view, which is safer.
-        refreshControl.endRefreshing()
+        weatherStatusView.tableView.reloadData() // This reloads the entire table view, which is safer.
+        weatherStatusView.refreshControl.endRefreshing()
     }
     
     func didRegisterLocation() {
@@ -172,9 +118,9 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
             DispatchQueue.main.async {
                 self?.debounceTimer?.invalidate()
                 self?.debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
-                    self?.activityIndicator.stopAnimating()
-                    self?.tableView.reloadData()
-                    self?.refreshControl.endRefreshing()
+                    self?.weatherStatusView.activityIndicator.stopAnimating()
+                    self?.weatherStatusView.tableView.reloadData()
+                    self?.weatherStatusView.refreshControl.endRefreshing()
                 }
             }
         }
@@ -189,7 +135,7 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         // Start updating the location if we have the proper authorization
         locationManager.startUpdatingLocation()
         DispatchQueue.main.async {
-            self.activityIndicator.startAnimating()
+            self.weatherStatusView.activityIndicator.startAnimating()
         }
     }
     
@@ -281,7 +227,7 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         case .restricted, .denied:
             print("Location access denied/restricted.")
             DispatchQueue.main.async { [weak self] in
-                self?.activityIndicator.stopAnimating()
+                self?.weatherStatusView.activityIndicator.stopAnimating()
             }
         case .authorizedWhenInUse, .authorizedAlways:
             DispatchQueue.main.async { [weak self] in
@@ -312,14 +258,14 @@ class WeatherStatusViewController: UIViewController, UITableViewDelegate, UITabl
         viewModel.addLocation(locationEntity, isCurrentLocation: true)
         print("processLocation: \(locationEntity)")
         DispatchQueue.main.async { [weak self] in
-            self?.activityIndicator.stopAnimating()
-            self?.tableView.reloadData()
+            self?.weatherStatusView.activityIndicator.stopAnimating()
+            self?.weatherStatusView.tableView.reloadData()
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Failed to get user location: \(error)")
-        activityIndicator.stopAnimating()
+        weatherStatusView.activityIndicator.stopAnimating()
     }
     
     // MARK: - UITableViewDataSource & UITableViewDelegate

@@ -10,13 +10,15 @@ final class WeatherStatusViewModelTests: XCTestCase {
     var mockWeatherRepository: MockWeatherRepository!
     var mockLocationRepository: MockLocationRepository!
     var mockNotificationService: MockWeatherNotificationService!
+    var mockCalendarService: MockCa
 
     override func setUp() {
         super.setUp()
         mockWeatherRepository = MockWeatherRepository()
         mockLocationRepository = MockLocationRepository()
         mockNotificationService = MockWeatherNotificationService(notificationService: NotificationService())
-        viewModel = WeatherStatusViewModel(weatherRepository: mockWeatherRepository,
+        viewModel = WeatherStatusViewModel(calendarService: <#CalendarService#>, 
+                                           weatherRepository: mockWeatherRepository,
                                            locationRepository: mockLocationRepository,
                                            notificationService: mockNotificationService)
     }

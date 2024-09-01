@@ -66,7 +66,7 @@ class MainCoordinator: Coordinator {
     
     func didRegisterLocation() {
         weatherStatusViewController?.viewModel.loadWeatherData()
-        weatherStatusViewController?.tableView.reloadData()
+        weatherStatusViewController?.weatherStatusView.tableView.reloadData()
     }
     
     func performBackgroundFetch(completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {

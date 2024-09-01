@@ -43,12 +43,12 @@ class LocationRegistrationViewController: UIViewController, UITextFieldDelegate 
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupView()
+        setupViewController()
     }
     
     // MARK: - Setup
     
-    private func setupView() {
+    private func setupViewController() {
         title = "Register Location"
         registrationView.configure(id: uuid.uuidString)
         registrationView.cityNameTextField.delegate = self
