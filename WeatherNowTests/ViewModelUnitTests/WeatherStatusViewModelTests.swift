@@ -10,14 +10,15 @@ final class WeatherStatusViewModelTests: XCTestCase {
     var mockWeatherRepository: MockWeatherRepository!
     var mockLocationRepository: MockLocationRepository!
     var mockNotificationService: MockWeatherNotificationService!
-    var mockCalendarService: MockCa
+    var mockCalendarService: MockCalendarService!
 
     override func setUp() {
         super.setUp()
         mockWeatherRepository = MockWeatherRepository()
         mockLocationRepository = MockLocationRepository()
         mockNotificationService = MockWeatherNotificationService(notificationService: NotificationService())
-        viewModel = WeatherStatusViewModel(calendarService: <#CalendarService#>, 
+        mockCalendarService = MockCalendarService()
+        viewModel = WeatherStatusViewModel(calendarService: mockCalendarService,
                                            weatherRepository: mockWeatherRepository,
                                            locationRepository: mockLocationRepository,
                                            notificationService: mockNotificationService)
@@ -28,6 +29,7 @@ final class WeatherStatusViewModelTests: XCTestCase {
         mockWeatherRepository = nil
         mockLocationRepository = nil
         mockNotificationService = nil
+        mockCalendarService = nil
         super.tearDown()
     }
 
