@@ -54,7 +54,7 @@ class LocationRegistrationCoordinator: Coordinator {
     
     func didRegisterLocation() {
         weatherStatusViewController?.viewModel.loadWeatherData()
-        weatherStatusViewController?.tableView.reloadData()
+        weatherStatusViewController?.weatherStatusView.tableView.reloadData()
         
         navigationController.dismiss(animated: true, completion: nil)
         

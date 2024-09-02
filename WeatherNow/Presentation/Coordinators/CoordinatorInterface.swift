@@ -7,7 +7,7 @@
 
 import UIKit
 
-// Coordinator protocol to define the basic structure of a coordinator
+/// Coordinator protocol to define the basic structure of a coordinator
 protocol Coordinator: AnyObject {
     var childCoordinators: [Coordinator] { get set }
     var navigationController: UINavigationController { get set }

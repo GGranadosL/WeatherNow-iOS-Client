@@ -55,8 +55,8 @@ class MainCoordinator: Coordinator {
             navigationController: navigationController,
             locationRepository: locationRepository,
             weatherRepository: weatherRepository,
-            weatherStatusViewController: weatherStatusViewController, // Unwrapped instance
-            notificationService: notificationService // Pass the notification service here
+            weatherStatusViewController: weatherStatusViewController,
+            notificationService: notificationService
         )
         locationRegistrationCoordinator.parentCoordinator = self
         addChildCoordinator(locationRegistrationCoordinator)
@@ -66,7 +66,7 @@ class MainCoordinator: Coordinator {
     
     func didRegisterLocation() {
         weatherStatusViewController?.viewModel.loadWeatherData()
-        weatherStatusViewController?.tableView.reloadData()
+        weatherStatusViewController?.weatherStatusView.tableView.reloadData()
     }
     
     func performBackgroundFetch(completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C00F6AA22C86483400C22DE3 /* MockCalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00F6AA12C86483400C22DE3 /* MockCalendarService.swift */; };
 		C014B9012C7906400098B8DB /* WeatherStatusViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C014B9002C7906400098B8DB /* WeatherStatusViewController.swift */; };
 		C014B9032C7906550098B8DB /* WeatherStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C014B9022C7906550098B8DB /* WeatherStatusView.swift */; };
 		C014B9052C790B900098B8DB /* WeatherStatusViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C014B9042C790B900098B8DB /* WeatherStatusViewModel.swift */; };
@@ -70,6 +71,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C00F6AA12C86483400C22DE3 /* MockCalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockCalendarService.swift; sourceTree = "<group>"; };
 		C014B9002C7906400098B8DB /* WeatherStatusViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherStatusViewController.swift; sourceTree = "<group>"; };
 		C014B9022C7906550098B8DB /* WeatherStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherStatusView.swift; sourceTree = "<group>"; };
 		C014B9042C790B900098B8DB /* WeatherStatusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherStatusViewModel.swift; sourceTree = "<group>"; };
@@ -375,6 +377,7 @@
 				C0E586F82C7E857900F6BE7B /* MockLocationRepository.swift */,
 				C0E586FA2C7E85BE00F6BE7B /* MockWeatherNotificationService.swift */,
 				C0E587002C7E8BD200F6BE7B /* MockAPIClient.swift */,
+				C00F6AA12C86483400C22DE3 /* MockCalendarService.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -575,6 +578,7 @@
 				C0E586FF2C7E8A2400F6BE7B /* LocationRegistrationViewModelTests.swift in Sources */,
 				C0F6C2632C7EA7EB00243AA7 /* WeatherRepositoryIntegrationTests.swift in Sources */,
 				C0E587062C7E8E3600F6BE7B /* LocationRepositoryTests.swift in Sources */,
+				C00F6AA22C86483400C22DE3 /* MockCalendarService.swift in Sources */,
 				C0E587092C7E932700F6BE7B /* WeatherRepositoryTests.swift in Sources */,
 				C0E586F72C7E851500F6BE7B /* MockWeatherRepository.swift in Sources */,
 				C0E586FB2C7E85BE00F6BE7B /* MockWeatherNotificationService.swift in Sources */,

@@ -23,16 +23,12 @@ class WeatherRepository: WeatherRepositoryInterface {
 
     private let apiClient: APIClientInterface
     
-    /// Initializes the repository with an API client.
-    /// - Parameter apiClient: The API client used for making network requests.
+    // Initializes the repository with an API client.
     init(apiClient: APIClientInterface) {
         self.apiClient = apiClient
     }
     
-    /// Fetches weather data for a given location.
-    /// - Parameters:
-    ///   - location: The location for which to fetch weather data.
-    ///   - completion: A closure that gets called with the result of the request.
+    // Fetches weather data for a given location.
     func fetchWeather(forLocation location: LocationEntity, completion: @escaping (Result<LocationEntity, Error>) -> Void) {
         apiClient.fetchWeather(forLocation: location) { result in
             switch result {

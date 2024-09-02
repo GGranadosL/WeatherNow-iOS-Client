@@ -10,8 +10,27 @@ import UIKit
 class LocationRegistrationView: UIView {
     
     // MARK: - UI Elements
+    let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Register New Location"
+        label.font = UIFont.boldSystemFont(ofSize: 24)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     
-    private let idLabel: UILabel = {
+    let instructionLabel: UILabel = {
+        let label = UILabel()
+        label.text = "You can either enter a city name or latitude and longitude."
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.textColor = .gray
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    let idLabel: UILabel = {
         let label = UILabel()
         label.text = "ID:"
         label.font = .systemFont(ofSize: 14, weight: .medium)
@@ -19,9 +38,9 @@ class LocationRegistrationView: UIView {
         return label
     }()
     
-    private let idValueLabel: UILabel = {
+    let idValueLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 18, weight: .bold)
+        label.font = .systemFont(ofSize: 12, weight: .bold)
         label.textColor = .black
         label.textAlignment = .right
         return label
@@ -29,65 +48,49 @@ class LocationRegistrationView: UIView {
     
     let cityNameTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Enter City Name"
-        textField.font = .systemFont(ofSize: 18)
-        textField.textColor = .black
-        textField.backgroundColor = .clear
-        textField.borderStyle = .none
-        textField.setUnderline()
+        textField.placeholder = "City Name"
+        textField.borderStyle = .roundedRect
+        textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
     
+    // Text field for latitude
     let latitudeTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Enter Latitude"
-        textField.font = .systemFont(ofSize: 18)
-        textField.textColor = .black
-        textField.backgroundColor = .clear
-        textField.borderStyle = .none
-        textField.setUnderline()
+        textField.placeholder = "Latitude"
+        textField.borderStyle = .roundedRect
+        textField.keyboardType = .numbersAndPunctuation
+        textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
     
+    // Text field for longitude
     let longitudeTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Enter Longitude"
-        textField.font = .systemFont(ofSize: 18)
-        textField.textColor = .black
-        textField.backgroundColor = .clear
-        textField.borderStyle = .none
-        textField.setUnderline()
+        textField.placeholder = "Longitude"
+        textField.borderStyle = .roundedRect
+        textField.keyboardType = .numbersAndPunctuation
+        textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
     
-    private let registrationDateLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Registration Date:"
-        label.font = .systemFont(ofSize: 14, weight: .medium)
-        label.textColor = .gray
-        return label
-    }()
-    
-    private let registrationDateValueLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 18, weight: .bold)
-        label.textColor = .black
-        label.textAlignment = .right
-        return label
-    }()
-    
+    // Save button
     let saveButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Save Location", for: .normal)
-        button.titleLabel?.font = .boldSystemFont(ofSize: 20)
-        button.backgroundColor = .systemBlue
+        button.backgroundColor = UIColor(red: 238/255, green: 80/255, blue: 50/255, alpha: 1)
         button.tintColor = .white
-        button.layer.cornerRadius = 10
-        button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOpacity = 0.3
-        button.layer.shadowOffset = CGSize(width: 0, height: 4)
-        button.layer.shadowRadius = 8
+        button.layer.cornerRadius = 8
+        button.translatesAutoresizingMaskIntoConstraints = false
         return button
+    }()
+    
+    // Activity Indicator to show while processing the request
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicator.hidesWhenStopped = true
+        return activityIndicator
     }()
     
     // MARK: - Initialization
@@ -108,79 +111,69 @@ class LocationRegistrationView: UIView {
         backgroundColor = .white
         
         // Add subviews
+        addSubview(titleLabel)
+        addSubview(instructionLabel)
         addSubview(idLabel)
         addSubview(idValueLabel)
         addSubview(cityNameTextField)
         addSubview(latitudeTextField)
         addSubview(longitudeTextField)
-        addSubview(registrationDateLabel)
-        addSubview(registrationDateValueLabel)
         addSubview(saveButton)
+        addSubview(activityIndicator)
         
         // Setup layout using Auto Layout
         setupConstraints()
     }
     
     private func setupConstraints() {
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        instructionLabel.translatesAutoresizingMaskIntoConstraints = false
         idLabel.translatesAutoresizingMaskIntoConstraints = false
         idValueLabel.translatesAutoresizingMaskIntoConstraints = false
         cityNameTextField.translatesAutoresizingMaskIntoConstraints = false
         latitudeTextField.translatesAutoresizingMaskIntoConstraints = false
         longitudeTextField.translatesAutoresizingMaskIntoConstraints = false
-        registrationDateLabel.translatesAutoresizingMaskIntoConstraints = false
-        registrationDateValueLabel.translatesAutoresizingMaskIntoConstraints = false
         saveButton.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            idLabel.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 40),
-            idLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            titleLabel.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 20),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            
+            instructionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            instructionLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            instructionLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            
+            idLabel.topAnchor.constraint(equalTo: instructionLabel.bottomAnchor, constant: 20),
+            idLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 40),
             
             idValueLabel.centerYAnchor.constraint(equalTo: idLabel.centerYAnchor),
-            idValueLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             idValueLabel.leadingAnchor.constraint(equalTo: idLabel.trailingAnchor, constant: 10),
             
-            cityNameTextField.topAnchor.constraint(equalTo: idLabel.bottomAnchor, constant: 40),
-            cityNameTextField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            cityNameTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            cityNameTextField.topAnchor.constraint(equalTo: idLabel.bottomAnchor, constant: 20),
+            cityNameTextField.centerXAnchor.constraint(equalTo: centerXAnchor),
+            cityNameTextField.widthAnchor.constraint(equalToConstant: 250),
             
-            latitudeTextField.topAnchor.constraint(equalTo: cityNameTextField.bottomAnchor, constant: 30),
-            latitudeTextField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            latitudeTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            latitudeTextField.topAnchor.constraint(equalTo: cityNameTextField.bottomAnchor, constant: 20),
+            latitudeTextField.centerXAnchor.constraint(equalTo: centerXAnchor),
+            latitudeTextField.widthAnchor.constraint(equalToConstant: 250),
             
-            longitudeTextField.topAnchor.constraint(equalTo: latitudeTextField.bottomAnchor, constant: 30),
-            longitudeTextField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            longitudeTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            longitudeTextField.topAnchor.constraint(equalTo: latitudeTextField.bottomAnchor, constant: 40),
+            longitudeTextField.centerXAnchor.constraint(equalTo: centerXAnchor),
+            longitudeTextField.widthAnchor.constraint(equalToConstant: 250),
             
-            registrationDateLabel.topAnchor.constraint(equalTo: longitudeTextField.bottomAnchor, constant: 40),
-            registrationDateLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            
-            registrationDateValueLabel.centerYAnchor.constraint(equalTo: registrationDateLabel.centerYAnchor),
-            registrationDateValueLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
-            registrationDateValueLabel.leadingAnchor.constraint(equalTo: registrationDateLabel.trailingAnchor, constant: 10),
-            
-            saveButton.topAnchor.constraint(equalTo: registrationDateLabel.bottomAnchor, constant: 60),
-            saveButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            saveButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
-            saveButton.heightAnchor.constraint(equalToConstant: 60)
+            saveButton.topAnchor.constraint(equalTo: longitudeTextField.bottomAnchor, constant: 40),
+            saveButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            saveButton.widthAnchor.constraint(equalToConstant: 150),
+            saveButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
     
     // MARK: - Public Methods
     
-    func configure(id: String, registrationDate: String) {
+    func configure(id: String) {
         idValueLabel.text = id
-        registrationDateValueLabel.text = registrationDate
     }
 }
 
-// MARK: - Extensions
-
-private extension UITextField {
-    func setUnderline() {
-        let underline = CALayer()
-        underline.backgroundColor = UIColor.lightGray.cgColor
-        underline.frame = CGRect(x: 0, y: self.frame.height + 10, width: self.frame.width, height: 1)
-        self.borderStyle = .none
-        self.layer.addSublayer(underline)
-    }
-}
