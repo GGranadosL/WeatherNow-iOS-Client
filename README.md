@@ -1,5 +1,7 @@
 # WeatherNow iOS App
 
+![Description](WeatherNow/Resources/Assets.xcassets/AppIcon.appiconset/180.png) 
+
 **WeatherNow iOS App** is an iOS application developed for WeatherNow Inc., designed to provide accurate and accessible weather information to users. The app allows users to register locations of interest, view current weather conditions, and receive notifications about significant weather changes.
 
 ## Features
@@ -15,6 +17,8 @@
 - **Calendar Integration**: Allows users to add reminders to their device's calendar to check the weather.
 - **API Calls**: Implements API calls for fetching weather by location and by city name.
 - **Unit and Integration Tests**: Comprehensive testing ensures reliability and performance.
+
+  [Watch the demo](https://youtu.be/xp_wRxghh9M) 
 
 ## Project Structure (Clean Architecture + MVVM)
 
