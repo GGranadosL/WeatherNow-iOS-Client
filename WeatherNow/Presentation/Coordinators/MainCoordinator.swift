@@ -55,8 +55,8 @@ class MainCoordinator: Coordinator {
             navigationController: navigationController,
             locationRepository: locationRepository,
             weatherRepository: weatherRepository,
-            weatherStatusViewController: weatherStatusViewController, // Unwrapped instance
-            notificationService: notificationService // Pass the notification service here
+            weatherStatusViewController: weatherStatusViewController,
+            notificationService: notificationService
         )
         locationRegistrationCoordinator.parentCoordinator = self
         addChildCoordinator(locationRegistrationCoordinator)
